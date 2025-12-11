@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Receptoras - Análise de Performance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .alert-pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .ranking-badge {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #1a202c;
+        }
+        .efficiency-low {
+            background: linear-gradient(45deg, #ef4444, #f87171);
+        }
+        .efficiency-medium {
+            background: linear-gradient(45deg, #f59e0b, #fbbf24);
+        }
+        .efficiency-high {
+            background: linear-gradient(45deg, #10b981, #34d399);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="heart-pulse" class="w-8 h-8"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Módulo de Receptoras</h1>
+                        <p class="text-blue-100">Análise de Performance e ROI</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="alertsIndicator" class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold alert-pulse hidden">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 inline mr-1"></i>
+                        <span id="alertsCount">0</span> Alertas
+                    </div>
+                    <span class="text-sm">Haras São João</span>
+                    <a href="dashboard-integrado.html" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                        Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Alertas de Eficiência -->
+        <div id="alertsSection" class="bg-red-50 border-l-4 border-red-500 p-6 mb-8 rounded-lg hidden">
+            <div class="flex items-center mb-4">
+                <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 mr-3"></i>
+                <h2 class="text-xl font-semibold text-red-800">Alertas de Baixa Eficiência</h2>
+            </div>
+            <div id="alertsList" class="space-y-3">
+                <!-- Alertas serão carregados dinamicamente -->
+            </div>
+        </div>
+
+        <!-- KPIs Principais -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6 flex items-center space-x-4 card-hover">
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                </div>
+                <div>
+                    <div id="totalReceptoras" class="text-3xl font-bold">-</div>
+                    <div class="text-gray-500">Receptoras Ativas</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex items-center space-x-4 card-hover">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
+                </div>
+                <div>
+                    <div id="taxaMediaPrenhez" class="text-3xl font-bold">-</div>
+                    <div class="text-gray-500">Taxa Média de Prenhez</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex items-center space-x-4 card-hover">
+                <div class="bg-purple-100 p-3 rounded-full">
+                    <i data-lucide="dollar-sign" class="w-6 h-6 text-purple-600"></i>
+                </div>
+                <div>
+                    <div id="custoMedioPotro" class="text-3xl font-bold">-</div>
+                    <div class="text-gray-500">Custo Médio por Potro</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex items-center space-x-4 card-hover">
+                <div class="bg-red-100 p-3 rounded-full">
+                    <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600"></i>
+                </div>
+                <div>
+                    <div id="totalAlertas" class="text-3xl font-bold">-</div>
+                    <div class="text-gray-500">Alertas de Baixa Eficiência</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking de Receptoras -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="award" class="w-6 h-6 text-yellow-500"></i>
+                    <h2 class="text-xl font-semibold">Ranking Automático de Performance</h2>
+                </div>
+                <div class="flex space-x-2">
+                    <button onclick="refreshRanking()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4 inline mr-2"></i>
+                        Atualizar Ranking
+                    </button>
+                    <button onclick="showAddReceptoraModal()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        <i data-lucide="plus" class="w-4 h-4 inline mr-2"></i>
+                        Adicionar Receptora
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Ranking</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Nome/ID</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Taxa Prenhez</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Tempo Médio Conf.</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Custo por Potro</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Eficiência</th>
+                            <th class="text-left py-3 px-4 font-semibold text-sm">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rankingTableBody" class="text-gray-700">
+                        <!-- Dados serão carregados dinamicamente -->
+                        <tr class="border-b bg-blue-50">
+                            <td class="py-3 px-4">2</td>
+                            <td class="py-3 px-4">Dama da Noite</td>
+                            <td class="py-3 px-4 font-semibold text-green-600">85.7%</td>
+                            <td class="py-3 px-4">16 dias</td>
+                            <td class="py-3 px-4 font-semibold text-green-600">R$ 4.200</td>
+                            <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Boa</span></td>
+                            <td class="py-3 px-4"><button class="text-blue-500 hover:text-blue-700"><i data-lucide="eye"></i></button></td>
+                        </tr>
+                        <!-- Receptora #3 -->
+                        <tr class="border-b">
+                            <td class="py-3 px-4">3</td>
+                            <td class="py-3 px-4">Lua Nova</td>
+                            <td class="py-3 px-4 font-semibold text-green-600">81.5%</td>
+                            <td class="py-3 px-4">15 dias</td>
+                            <td class="py-3 px-4 font-semibold text-green-600">R$ 4.500</td>
+                            <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Boa</span></td>
+                            <td class="py-3 px-4"><button class="text-blue-500 hover:text-blue-700"><i data-lucide="eye"></i></button></td>
+                        </tr>
+                        <!-- Receptora #4 -->
+                        <tr class="border-b bg-yellow-50">
+                            <td class="py-3 px-4">4</td>
+                            <td class="py-3 px-4">Brisa Leve</td>
+                            <td class="py-3 px-4 font-semibold text-yellow-600">66.7%</td>
+                            <td class="py-3 px-4">18 dias</td>
+                            <td class="py-3 px-4 font-semibold text-yellow-600">R$ 5.800</td>
+                            <td class="py-3 px-4"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs">Atenção</span></td>
+                            <td class="py-3 px-4"><button class="text-blue-500 hover:text-blue-700"><i data-lucide="eye"></i></button></td>
+                        </tr>
+                        <!-- Receptora #5 -->
+                        <tr class="border-b bg-red-50">
+                            <td class="py-3 px-4">5</td>
+                            <td class="py-3 px-4">Tempestade</td>
+                            <td class="py-3 px-4 font-semibold text-red-600">33.3%</td>
+                            <td class="py-3 px-4">21 dias</td>
+                            <td class="py-3 px-4 font-semibold text-red-600">R$ 8.900</td>
+                            <td class="py-3 px-4"><span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Baixa Eficiência</span></td>
+                            <td class="py-3 px-4"><button class="text-blue-500 hover:text-blue-700"><i data-lucide="eye"></i></button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Alertas e Análises -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Alertas de Baixa Eficiência -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="alert-circle" class="w-5 h-5 mr-2 text-red-500"></i>
+                    Alertas de Baixa Eficiência
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-red-50 p-4 rounded-lg flex items-start space-x-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <p class="font-semibold">Receptora #45 (Tempestade) teve 3 ciclos sem prenhez.</p>
+                            <p class="text-sm text-gray-600">Custo acumulado: R$ 8.900. Taxa de prenhez: 33.3%.</p>
+                            <button class="text-sm text-blue-500 hover:underline mt-2">Ver detalhes e agendar revisão</button>
+                        </div>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg flex items-start space-x-3">
+                        <i data-lucide="info" class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <p class="font-semibold">Receptora #23 (Brisa Leve) com status de saúde "Atenção".</p>
+                            <p class="text-sm text-gray-600">Taxa de prenhez caiu 15% nos últimos 2 ciclos.</p>
+                            <button class="text-sm text-blue-500 hover:underline mt-2">Ver histórico e agendar consulta</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Análise de Custo por Potro (ROI) -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="pie-chart" class="w-5 h-5 mr-2 text-purple-500"></i>
+                    Análise de Custo por Potro (ROI)
+                </h3>
+                <canvas id="roiChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Árvore Reprodutiva do Embrião -->
+        <div id="arvoreReprodutivaSection" class="bg-white rounded-xl shadow-lg p-6 mb-8 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="git-merge" class="w-6 h-6 text-green-500"></i>
+                    <h2 class="text-xl font-semibold">Árvore Reprodutiva do Embrião</h2>
+                </div>
+                <button onclick="hideArvoreReprodutiva()" class="text-gray-500 hover:text-gray-700">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+            <div id="arvoreReprodutivaContent">
+                <!-- Conteúdo da árvore será carregado dinamicamente -->
+            </div>
+        </div>
+
+        <!-- Detalhes da Receptora Selecionada -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i data-lucide="search" class="w-5 h-5 mr-2 text-blue-500"></i>
+                Detalhes da Receptora: Estrela Guia
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Informações Gerais -->
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Informações Gerais</h4>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>ID:</strong> 1</p>
+                        <p><strong>Raça:</strong> Mangalarga</p>
+                        <p><strong>Idade:</strong> 7 anos</p>
+                        <p><strong>Status Saúde:</strong> Excelente</p>
+                        <p><strong>Data Cadastro:</strong> 2023-01-15</p>
+                    </div>
+                </div>
+                <!-- Histórico de Ciclos -->
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Histórico de Ciclos (Últimos 5)</h4>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex justify-between"><span>2025-09-15:</span> <span class="font-semibold text-green-600">Sucesso</span></li>
+                        <li class="flex justify-between"><span>2025-08-20:</span> <span class="font-semibold text-green-600">Sucesso</span></li>
+                        <li class="flex justify-between"><span>2025-07-25:</span> <span class="font-semibold text-green-600">Sucesso</span></li>
+                        <li class="flex justify-between"><span>2025-06-30:</span> <span class="font-semibold text-red-600">Falha</span></li>
+                        <li class="flex justify-between"><span>2025-06-05:</span> <span class="font-semibold text-green-600">Sucesso</span></li>
+                    </ul>
+                </div>
+                <!-- Análise Financeira -->
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Análise Financeira</h4>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Custo Acumulado:</strong> R$ 15.800</p>
+                        <p><strong>Potros Gerados:</strong> 4</p>
+                        <p><strong>Custo por Potro:</strong> R$ 3.950</p>
+                        <p><strong>ROI Estimado:</strong> 153%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Adicionar Receptora -->
+    <div id="addReceptoraModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Adicionar Nova Receptora</h3>
+                <button onclick="closeAddReceptoraModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            <form id="addReceptoraForm">
+                <div class="mb-4">
+                    <label for="nomeReceptora" class="block text-sm font-medium text-gray-700">Nome</label>
+                    <input type="text" id="nomeReceptora" name="nome" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                </div>
+                <div class="mb-4">
+                    <label for="identificacaoReceptora" class="block text-sm font-medium text-gray-700">Identificação</label>
+                    <input type="text" id="identificacaoReceptora" name="identificacao" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2" required>
+                </div>
+                <div class="mb-4">
+                    <label for="racaReceptora" class="block text-sm font-medium text-gray-700">Raça</label>
+                    <input type="text" id="racaReceptora" name="raca" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div class="mb-4">
+                    <label for="idadeReceptora" class="block text-sm font-medium text-gray-700">Idade</label>
+                    <input type="number" id="idadeReceptora" name="idade" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div class="mb-4">
+                    <label for="statusSaudeReceptora" class="block text-sm font-medium text-gray-700">Status de Saúde</label>
+                    <input type="text" id="statusSaudeReceptora" name="status_saude" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                </div>
+                <div class="flex justify-end">
+                    <button type="button" onclick="closeAddReceptoraModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md mr-2 hover:bg-gray-400">Cancelar</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Adicionar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Detalhes da Receptora -->
+    <div id="receptoraDetailsModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold" id="receptoraDetailsTitle">Detalhes da Receptora</h3>
+                <button onclick="closeReceptoraDetailsModal()" class="text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            </div>
+            <div id="receptoraDetailsContent" class="space-y-4">
+                <!-- Conteúdo dos detalhes da receptora será carregado aqui -->
+            </div>
+            <div class="flex justify-end mt-4">
+                <button onclick="closeReceptoraDetailsModal()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuração da API
+        const API_BASE_URL = '/api';
+        let authToken = localStorage.getItem('authToken') || 'demo-token';
+
+        // Inicializar ícones Lucide
+        lucide.createIcons();
+
+        // Variáveis globais
+        let performanceData = [];
+        let alertsData = [];
+
+        // Função para fazer requisições à API
+        async function apiRequest(endpoint, options = {}) {
+            const defaultOptions = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            };
+            
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                ...defaultOptions,
+                ...options
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API Error: ${response.status}`);
+            }
+            
+            return response.json();
+        }
+
+        // Carregar dados de performance das receptoras
+        async function loadPerformanceData() {
+            try {
+                performanceData = await apiRequest('/receptoras/performance');
+                updateKPIs();
+                updateRankingTable();
+            } catch (error) {
+                console.error('Erro ao carregar dados de performance:', error);
+                // Dados de demonstração em caso de erro
+                performanceData = generateDemoData();
+                updateKPIs();
+                updateRankingTable();
+            }
+        }
+
+        // Carregar alertas de eficiência
+        async function loadAlertsData() {
+            try {
+                alertsData = await apiRequest('/receptoras/alerts');
+                updateAlertsSection();
+            } catch (error) {
+                console.error('Erro ao carregar alertas:', error);
+                // Dados de demonstração em caso de erro
+                alertsData = generateDemoAlerts();
+                updateAlertsSection();
+            }
+        }
+
+        // Gerar dados de demonstração
+        function generateDemoData() {
+            return [
+                {
+                    id: 1,
+                    nome: "Estrela Guia",
+                    identificacao: "REC001",
+                    taxa_prenhez: "92.30",
+                    tempo_medio_confirmacao: "14.00",
+                    custo_acumulado: "15800.00",
+                    custo_por_potro: "3950.00",
+                    alertas: []
+                },
+                {
+                    id: 2,
+                    nome: "Dama da Noite",
+                    identificacao: "REC002",
+                    taxa_prenhez: "85.70",
+                    tempo_medio_confirmacao: "16.50",
+                    custo_acumulado: "12600.00",
+                    custo_por_potro: "4200.00",
+                    alertas: []
+                },
+                {
+                    id: 3,
+                    nome: "Lua Nova",
+                    identificacao: "REC003",
+                    taxa_prenhez: "78.60",
+                    tempo_medio_confirmacao: "18.20",
+                    custo_acumulado: "13500.00",
+                    custo_por_potro: "4500.00",
+                    alertas: []
+                },
+                {
+                    id: 4,
+                    nome: "Brisa Leve",
+                    identificacao: "REC004",
+                    taxa_prenhez: "65.40",
+                    tempo_medio_confirmacao: "22.80",
+                    custo_acumulado: "17400.00",
+                    custo_por_potro: "5800.00",
+                    alertas: ["Receptora Brisa Leve (REC004) teve 3 ciclos sem prenhez - revisar."]
+                },
+                {
+                    id: 5,
+                    nome: "Tempestade",
+                    identificacao: "REC005",
+                    taxa_prenhez: "45.20",
+                    tempo_medio_confirmacao: "28.50",
+                    custo_acumulado: "26700.00",
+                    custo_por_potro: "8900.00",
+                    alertas: ["Receptora Tempestade (REC005) teve 4 ciclos sem prenhez - revisar.", "Receptora Tempestade (REC005) com status de saúde: Problemas Reprodutivos."]
+                }
+            ];
+        }
+
+        // Gerar alertas de demonstração
+        function generateDemoAlerts() {
+            return [
+                {
+                    receptora_id: 4,
+                    nome: "Brisa Leve",
+                    identificacao: "REC004",
+                    mensagem: "Receptora Brisa Leve (REC004) teve 3 ciclos sem prenhez - revisar.",
+                    tipo: "baixa_eficiencia"
+                },
+                {
+                    receptora_id: 5,
+                    nome: "Tempestade",
+                    identificacao: "REC005",
+                    mensagem: "Receptora Tempestade (REC005) teve 4 ciclos sem prenhez - revisar.",
+                    tipo: "baixa_eficiencia"
+                },
+                {
+                    receptora_id: 5,
+                    nome: "Tempestade",
+                    identificacao: "REC005",
+                    mensagem: "Receptora Tempestade (REC005) com status de saúde: Problemas Reprodutivos.",
+                    tipo: "saude"
+                }
+            ];
+        }
+
+        // Atualizar KPIs
+        function updateKPIs() {
+            const totalReceptoras = performanceData.length;
+            const taxaMediaPrenhez = performanceData.reduce((sum, r) => sum + parseFloat(r.taxa_prenhez), 0) / totalReceptoras;
+            const custoMedioPotro = performanceData.reduce((sum, r) => sum + parseFloat(r.custo_por_potro), 0) / totalReceptoras;
+            const totalAlertas = performanceData.reduce((sum, r) => sum + r.alertas.length, 0);
+
+            document.getElementById('totalReceptoras').textContent = totalReceptoras;
+            document.getElementById('taxaMediaPrenhez').textContent = `${taxaMediaPrenhez.toFixed(1)}%`;
+            document.getElementById('custoMedioPotro').textContent = `R$ ${custoMedioPotro.toFixed(0)}`;
+            document.getElementById('totalAlertas').textContent = totalAlertas;
+
+            // Atualizar indicador de alertas no header
+            const alertsIndicator = document.getElementById('alertsIndicator');
+            const alertsCount = document.getElementById('alertsCount');
+            if (totalAlertas > 0) {
+                alertsIndicator.classList.remove('hidden');
+                alertsCount.textContent = totalAlertas;
+            } else {
+                alertsIndicator.classList.add('hidden');
+            }
+        }
+
+        // Atualizar tabela de ranking
+        function updateRankingTable() {
+            const tbody = document.getElementById('rankingTableBody');
+            tbody.innerHTML = '';
+
+            performanceData.forEach((receptora, index) => {
+                const ranking = index + 1;
+                const taxaPrenhez = parseFloat(receptora.taxa_prenhez);
+                const custoPorto = parseFloat(receptora.custo_por_potro);
+                
+                // Determinar classe de eficiência
+                let efficiencyClass = 'efficiency-high';
+                let efficiencyText = 'Excelente';
+                
+                if (taxaPrenhez < 60 || custoPorto > 7000) {
+                    efficiencyClass = 'efficiency-low';
+                    efficiencyText = 'Baixa';
+                } else if (taxaPrenhez < 80 || custoPorto > 5000) {
+                    efficiencyClass = 'efficiency-medium';
+                    efficiencyText = 'Média';
+                }
+
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-3 px-4">
+                        ${ranking <= 3 ? `<span class="ranking-badge px-2 py-1 rounded-full text-xs font-bold">#${ranking}</span>` : `#${ranking}`}
+                    </td>
+                    <td class="py-3 px-4">
+                        <div>
+                            <div class="font-semibold">${receptora.nome}</div>
+                            <div class="text-sm text-gray-500">${receptora.identificacao}</div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 font-semibold ${taxaPrenhez >= 80 ? 'text-green-600' : taxaPrenhez >= 60 ? 'text-yellow-600' : 'text-red-600'}">
+                        ${receptora.taxa_prenhez}%
+                    </td>
+                    <td class="py-3 px-4">${parseFloat(receptora.tempo_medio_confirmacao).toFixed(1)} dias</td>
+                    <td class="py-3 px-4 font-semibold ${custoPorto <= 5000 ? 'text-green-600' : custoPorto <= 7000 ? 'text-yellow-600' : 'text-red-600'}">
+                        R$ ${parseFloat(receptora.custo_por_potro).toFixed(0)}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="${efficiencyClass} text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            ${efficiencyText}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <button onclick="viewReceptoraDetails(${receptora.id})" class="text-blue-500 hover:text-blue-700 mr-2">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="editReceptora(${receptora.id})" class="text-green-500 hover:text-green-700">
+                            <i data-lucide="edit" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Reinicializar ícones Lucide
+            lucide.createIcons();
+        }
+
+        // Atualizar seção de alertas
+        function updateAlertsSection() {
+            const alertsSection = document.getElementById('alertsSection');
+            const alertsList = document.getElementById('alertsList');
+            
+            if (alertsData.length === 0) {
+                alertsSection.classList.add('hidden');
+                return;
+            }
+
+            alertsSection.classList.remove('hidden');
+            alertsList.innerHTML = '';
+
+            alertsData.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `p-4 rounded-lg ${alert.tipo === 'saude' ? 'bg-red-100 border border-red-300' : 'bg-yellow-100 border border-yellow-300'}`;
+                alertDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <i data-lucide="${alert.tipo === 'saude' ? 'heart-pulse' : 'trending-down'}" class="w-5 h-5 ${alert.tipo === 'saude' ? 'text-red-600' : 'text-yellow-600'} mr-3"></i>
+                            <span class="text-sm font-medium">${alert.mensagem}</span>
+                        </div>
+                        <button onclick="viewReceptoraDetails(${alert.receptora_id})" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            Ver Detalhes
+                        </button>
+                    </div>
+                `;
+                alertsList.appendChild(alertDiv);
+            });
+
+            // Reinicializar ícones Lucide
+            lucide.createIcons();
+        }
+
+        // Funções de ação
+        function refreshRanking() {
+            loadPerformanceData();
+            loadAlertsData();
+        }
+
+        // Funções do Modal de Adicionar Receptora
+        function showAddReceptoraModal() {
+            document.getElementById(\'addReceptoraModal\').classList.remove(\'hidden\');
+            lucide.createIcons();
+        }
+
+        function closeAddReceptoraModal() {
+            document.getElementById(\'addReceptoraModal\').classList.add(\'hidden\');
+            document.getElementById(\'addReceptoraForm\').reset();
+        }
+
+        async function addReceptora(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const receptoraData = Object.fromEntries(formData.entries());
+            try {
+                await apiRequest(\'/receptoras\', { method: \'POST\', body: JSON.stringify(receptoraData) });
+                alert(\'Receptora adicionada com sucesso!\');
+                closeAddReceptoraModal();
+                loadPerformanceData();
+            } catch (error) {
+                console.error(\'Erro ao adicionar receptora:\', error);
+                alert(\'Erro ao adicionar receptora.\');
+            }
+        }
+        document.getElementById(\'addReceptoraForm\').addEventListener(\'submit\', addReceptora);
+
+        // Funções do Modal de Detalhes da Receptora
+        async function viewReceptoraDetails(id) {
+            try {
+                const receptora = await apiRequest(`/receptoras/${id}`);
+                const detailsContent = document.getElementById(\'receptoraDetailsContent\');
+                document.getElementById(\'receptoraDetailsTitle\').textContent = `Detalhes da Receptora: ${receptora.nome}`;
+                
+                let ciclosHtml = receptora.ciclos_reprodutivos.map(ciclo => `
+                    <li class="mb-2 p-2 border rounded-md">
+                        <span>**Data Início:** ${ciclo.data_inicio}</span><br>
+                        <span>**Resultado:** <span class="font-semibold ${ciclo.resultado_prenhez === \'Sucesso\' ? \'text-green-600\' : \'text-red-600\'}">${ciclo.resultado_prenhez}</span></span><br>
+                        <span>**Escore Tônus Uterino/Edema:** ${ciclo.escore_tonus_uterino_edema || 'N/A'}</span><br>
+                        <span>**Resposta Protocolos Hormonais:** ${ciclo.resposta_protocolos_hormonais || 'N/A'}</span><br>
+                        <span>**Histórico Saúde Uterina:** ${ciclo.historico_saude_uterina || 'N/A'}</span>
+                    </li>
+                `).join(\'\');
+
+                let embrioesHtml = receptora.embrioes_transferidos.map(embriao => `
+                    <li class="flex justify-between items-center">
+                        <span>UID: ${embriao.embriao_uid} (Doadora: ${embriao.doadora_nome || \'N/A\'})</span>
+                        <button onclick="showArvoreReprodutiva(\'${embriao.embriao_uid}\')" class="text-blue-500 hover:text-blue-700 text-sm">Ver Árvore</button>
+                    </li>
+                `).join(\'\');
+
+                detailsContent.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Informações Gerais -->
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Informações Gerais</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>Nome/Código:</strong> ${receptora.nome} / ${receptora.identificacao}</p>
+                                <p><strong>Idade:</strong> ${receptora.idade} anos</p>
+                                <p><strong>Condição Corporal:</strong> ${receptora.condicao_corporal || 'N/A'}</p>
+                                <p><strong>Status Atual:</strong> ${receptora.status_atual || 'N/A'}</p>
+                                <p><strong>Localização/Lote:</strong> ${receptora.localizacao_lote || 'N/A'}</p>
+                                <p><strong>Último Protocolo Utilizado:</strong> ${receptora.ultimo_protocolo_utilizado || 'N/A'}</p>
+                                <p><strong>Responsável Técnico:</strong> ${receptora.responsavel_tecnico || 'N/A'}</p>
+                            </div>
+                        </div>
+                        <!-- Histórico de Ciclos -->
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Histórico Reprodutivo</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>Total de Transferências Recebidas:</strong> ${receptora.total_transferencias_recebidas}</p>
+                                <p><strong>Prenhezes Confirmadas:</strong> ${receptora.prenhezes_confirmadas}</p>
+                                <p><strong>Perdas Embrionárias:</strong> ${receptora.perdas_embrionarias}</p>
+                                <p><strong>Dias Médios até Prenhez:</strong> ${parseFloat(receptora.dias_medios_ate_prenhez).toFixed(2)} dias</p>
+                                <p><strong>Último Protocolo Utilizado:</strong> ${receptora.ultimo_protocolo_utilizado || 'N/A'}</p>
+                                <p><strong>Responsável Técnico:</strong> ${receptora.responsavel_tecnico || 'N/A'}</p>
+                            </div>
+
+                            <h4 class="font-semibold text-gray-800 mb-2 mt-4">Ciclos Reprodutivos</h4>
+                            <ul class="space-y-2 text-sm">
+                                ${ciclosHtml || '<li>Nenhum ciclo registrado.</li>'}
+                            </ul>
+                        </div>
+                        <!-- Análise Financeira e Reprodutiva -->
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-2">Custo Acumulado</h4>
+                            <div class="space-y-2 text-sm">
+                                <p><strong>Custo Acumulado Total:</strong> R$ ${parseFloat(receptora.custo_acumulado).toFixed(2)}</p>
+                                <p><strong>Custo por Potro:</strong> R$ ${parseFloat(receptora.custo_por_potro).toFixed(2)}</p>
+                                <p><strong>ROI Estimado:</strong> ${parseFloat(receptora.roi_estimado).toFixed(2)}%</p>
+                            </div>
+
+                            <h4 class="font-semibold text-gray-800 mb-2 mt-4">Extrato Financeiro</h4>
+                            <ul class="space-y-2 text-sm">
+                                <!-- Extrato financeiro será carregado aqui -->
+                                ${receptora.extrato_financeiro && receptora.extrato_financeiro.length > 0 ? receptora.extrato_financeiro.map(item => `<li>${item.data}: ${item.descricao} - R$ ${item.valor.toFixed(2)}</li>`).join('') : '<li>Nenhum lançamento financeiro.</li>'}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h4 class="font-semibold text-gray-800 mb-2">Embriões Transferidos</h4>
+                        <ul class="space-y-2 text-sm">
+                            ${embrioesHtml || \'<li>Nenhum embrião transferido.</li>\'}
+                        </ul>
+                    </div>
+                `;
+                document.getElementById(\'receptoraDetailsModal\').classList.remove(\'hidden\');
+                lucide.createIcons();
+            } catch (error) {
+                console.error(\'Erro ao carregar detalhes da receptora:\', error);
+                alert(\'Erro ao carregar detalhes da receptora.\');
+            }
+        }
+
+        function closeReceptoraDetailsModal() {
+            document.getElementById(\'receptoraDetailsModal\').classList.add(\'hidden\');
+        }
+
+        async function showArvoreReprodutiva(embriao_uid) {
+            try {
+                const arvoreData = await apiRequest(`/embrioes/${embriao_uid}/arvore-reprodutiva`);
+                const arvoreContent = document.getElementById(\'arvoreReprodutivaContent\');
+                arvoreContent.innerHTML = renderArvoreReprodutiva(arvoreData);
+                document.getElementById(\'arvoreReprodutivaSection\').classList.remove(\'hidden\');
+                lucide.createIcons();
+            } catch (error) {
+                console.error(\'Erro ao carregar árvore reprodutiva:\', error);
+                alert(\'Erro ao carregar árvore reprodutiva.\');
+            }
+        }
+
+        function hideArvoreReprodutiva() {
+            document.getElementById(\'arvoreReprodutivaSection\').classList.add(\'hidden\');
+        }
+
+        function renderArvoreReprodutiva(data) {
+            let html = \'<div class="space-y-4">\';
+            html += `<div class="p-4 bg-blue-50 rounded-lg shadow-sm"><strong>Embrião UID:</strong> ${data.embriao_uid}</div>`;
+            
+            if (data.doadora) {
+                html += `<div class="ml-8 p-3 bg-green-50 rounded-lg shadow-sm"><strong>Doadora:</strong> ${data.doadora.nome} (${data.doadora.raca})</div>`;
+            }
+            if (data.receptora) {
+                html += `<div class="ml-8 p-3 bg-purple-50 rounded-lg shadow-sm"><strong>Receptora:</strong> ${data.receptora.nome} (${data.receptora.raca})</div>`;
+            }
+            if (data.transferencia) {
+                html += `<div class="ml-16 p-2 bg-gray-50 rounded-lg shadow-sm"><strong>Transferência:</strong> ${data.transferencia.data_transferencia} - ${data.transferencia.resultado_transferencia}</div>`;
+            }
+            if (data.potro) {
+                html += `<div class="ml-24 p-3 bg-yellow-50 rounded-lg shadow-sm"><strong>Potro:</strong> ${data.potro.nome} (${data.potro.identificacao}) - Nasc: ${data.potro.data_nascimento}</div>`;
+            }
+            html += \'</div>\';
+            return html;
+        }
+
+        function editReceptora(id) {
+            alert(`Editar receptora ID: ${id}`);
+        }
+
+        // Criar gráficos
+        document.addEventListener("DOMContentLoaded", function() {
+            // Carregar dados iniciais
+            loadPerformanceData();
+            loadAlertsData();
+
+            // Gráfico de ROI (se existir)
+            const roiCanvas = document.getElementById("roiChart");
+            if (roiCanvas) {
+                const roiCtx = roiCanvas.getContext("2d");
+                new Chart(roiCtx, {
+                    type: "bar",
+                    data: {
+                        labels: ["Estrela Guia", "Dama da Noite", "Lua Nova", "Brisa Leve", "Tempestade"],
+                        datasets: [{
+                            label: "Custo por Potro (R$)",
+                            data: [3950, 4200, 4500, 5800, 8900],
+                            backgroundColor: [
+                                "rgba(16, 185, 129, 0.8)",
+                                "rgba(59, 130, 246, 0.8)",
+                                "rgba(139, 92, 246, 0.8)",
+                                "rgba(245, 158, 11, 0.8)",
+                                "rgba(239, 68, 68, 0.8)"
+                            ],
+                            borderColor: [
+                                "rgba(16, 185, 129, 1)",
+                                "rgba(59, 130, 246, 1)",
+                                "rgba(139, 92, 246, 1)",
+                                "rgba(245, 158, 11, 1)",
+                                "rgba(239, 68, 68, 1)"
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Financeiro - Sistema de Haras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+        .financial-card {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .positive { color: #10B981; }
+        .negative { color: #EF4444; }
+        .neutral { color: #6B7280; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="trending-up" class="w-8 h-8"></i>
+                    <h1 class="text-2xl font-bold">Dashboard Financeiro - Gestão Completa</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm opacity-90" id="userInfo">Usuário: João Silva (Proprietário)</span>
+                    <a href="dashboard-integrado.html" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                        Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Resumo Financeiro -->
+        <div class="financial-card text-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold mb-2">Resumo Financeiro - Outubro 2025</h2>
+                    <p class="text-green-100 mb-4">Performance financeira do haras em tempo real</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <div class="text-3xl font-bold" id="receitaTotal">R$ 45.000</div>
+                            <div class="text-green-100">Receita Total</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold" id="despesaTotal">R$ 28.000</div>
+                            <div class="text-green-100">Despesa Total</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold" id="lucroLiquido">R$ 17.000</div>
+                            <div class="text-green-100">Lucro Líquido</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                        <div class="text-sm text-green-100">Margem de Lucro</div>
+                        <div class="text-3xl font-bold" id="margemLucro">37.8%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs Principais -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Contas a Receber</p>
+                        <p class="text-3xl font-bold text-blue-600" id="contasReceber">R$ 12.500</p>
+                        <p class="text-sm text-blue-500">Próximos 30 dias</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i data-lucide="arrow-down-circle" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Contas a Pagar</p>
+                        <p class="text-3xl font-bold text-red-600" id="contasPagar">R$ 8.300</p>
+                        <p class="text-sm text-red-500">Vencimento próximo</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i data-lucide="arrow-up-circle" class="w-6 h-6 text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">Fluxo de Caixa</p>
+                        <p class="text-3xl font-bold text-green-600" id="fluxoCaixa">R$ 25.000</p>
+                        <p class="text-sm text-green-500">Projeção 30 dias</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i data-lucide="trending-up" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metric-card bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm">ROI Médio</p>
+                        <p class="text-3xl font-bold text-purple-600" id="roiMedio">47.3%</p>
+                        <p class="text-sm text-purple-500">Investimentos ativos</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded-full">
+                        <i data-lucide="target" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Principais -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="bar-chart" class="w-5 h-5 inline mr-2 text-green-600"></i>
+                    Evolução Mensal (Últimos 12 meses)
+                </h3>
+                <canvas id="evolucaoChart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="pie-chart" class="w-5 h-5 inline mr-2 text-blue-600"></i>
+                    Distribuição de Receitas
+                </h3>
+                <canvas id="receitasChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Análises de ROI -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i data-lucide="target" class="w-5 h-5 inline mr-2 text-purple-600"></i>
+                Análises de ROI - Investimentos Ativos
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-gray-800">Garanhão Premium</h4>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Ativo</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Investimento:</span>
+                            <span class="font-medium">R$ 250.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Receita Gerada:</span>
+                            <span class="font-medium">R$ 180.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">ROI:</span>
+                            <span class="font-bold text-green-600">72.0%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Payback:</span>
+                            <span class="font-medium">18 meses</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-gray-800">Modernização Estábulo</h4>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Ativo</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Investimento:</span>
+                            <span class="font-medium">R$ 120.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Receita Gerada:</span>
+                            <span class="font-medium">R$ 85.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">ROI:</span>
+                            <span class="font-bold text-green-600">41.7%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Payback:</span>
+                            <span class="font-medium">24 meses</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="font-bold text-gray-800">Sistema de Irrigação</h4>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Ativo</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Investimento:</span>
+                            <span class="font-medium">R$ 80.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Receita Gerada:</span>
+                            <span class="font-medium">R$ 45.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">ROI:</span>
+                            <span class="font-bold text-green-600">28.1%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sm text-gray-600">Payback:</span>
+                            <span class="font-medium">30 meses</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fluxo de Caixa -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i data-lucide="activity" class="w-5 h-5 inline mr-2 text-blue-600"></i>
+                Fluxo de Caixa - Últimos 30 dias
+            </h3>
+            <canvas id="fluxoCaixaChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Performance por Categorias -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="arrow-down-circle" class="w-5 h-5 inline mr-2 text-green-600"></i>
+                    Top Receitas por Categoria
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Venda de Animais</div>
+                            <div class="text-sm text-gray-500">53.7% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-green-600">R$ 25.000</div>
+                            <div class="text-xs text-green-500">+9.1%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Serviços Reprodutivos</div>
+                            <div class="text-sm text-gray-500">28.4% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-blue-600">R$ 15.000</div>
+                            <div class="text-xs text-blue-500">+8.0%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Aluguel de Pasto</div>
+                            <div class="text-sm text-gray-500">10.7% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-purple-600">R$ 5.000</div>
+                            <div class="text-xs text-purple-500">+5.9%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-6">
+                    <i data-lucide="arrow-up-circle" class="w-5 h-5 inline mr-2 text-red-600"></i>
+                    Top Despesas por Categoria
+                </h3>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Alimentação</div>
+                            <div class="text-sm text-gray-500">33.1% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-red-600">R$ 12.000</div>
+                            <div class="text-xs text-red-500">+3.7%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Veterinário</div>
+                            <div class="text-sm text-gray-500">17.5% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-orange-600">R$ 8.000</div>
+                            <div class="text-xs text-green-500">-13.5%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">Manutenção</div>
+                            <div class="text-sm text-gray-500">10.9% do total</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-yellow-600">R$ 5.000</div>
+                            <div class="text-xs text-yellow-500">+12.0%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-6">
+                <i data-lucide="zap" class="w-5 h-5 inline mr-2 text-yellow-600"></i>
+                Relatórios e Ações Rápidas
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button class="flex items-center justify-center space-x-2 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span>DRE Mensal</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                    <span>Fluxo de Caixa</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                    <span>Análise ROI</span>
+                </button>
+                
+                <button class="flex items-center justify-center space-x-2 bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 transition-colors">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    <span>Exportar PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar ícones
+        lucide.createIcons();
+
+        // Configuração da API
+        const API_BASE_URL = 'http://localhost:5000/api';
+        let authToken = localStorage.getItem('authToken');
+
+        // Dados simulados para demonstração
+        const dadosFinanceiros = {
+            evolucaoMensal: {
+                labels: ['Nov 24', 'Dez 24', 'Jan 25', 'Fev 25', 'Mar 25', 'Abr 25', 'Mai 25', 'Jun 25', 'Jul 25', 'Ago 25', 'Set 25', 'Out 25'],
+                receitas: [38000, 42000, 35000, 41000, 45000, 39000, 43000, 47000, 44000, 46000, 48000, 45000],
+                despesas: [24000, 26000, 23000, 25000, 28000, 24000, 27000, 29000, 26000, 28000, 30000, 28000],
+                lucros: [14000, 16000, 12000, 16000, 17000, 15000, 16000, 18000, 18000, 18000, 18000, 17000]
+            },
+            distribuicaoReceitas: {
+                labels: ['Venda de Animais', 'Serviços Reprodutivos', 'Aluguel de Pasto', 'Consultoria'],
+                valores: [25000, 15000, 5000, 3000],
+                cores: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B']
+            },
+            fluxoCaixa: {
+                labels: [],
+                entradas: [],
+                saidas: [],
+                saldos: []
+            }
+        };
+
+        // Gerar dados de fluxo de caixa para os últimos 30 dias
+        function gerarDadosFluxoCaixa() {
+            const hoje = new Date();
+            let saldoAcumulado = 15000;
+            
+            for (let i = 29; i >= 0; i--) {
+                const data = new Date(hoje);
+                data.setDate(data.getDate() - i);
+                
+                const dia = data.getDate();
+                const entradas = 1500 + (dia * 50) + ((dia % 7) * 200);
+                const saidas = 1200 + (dia * 30) + ((dia % 5) * 150);
+                
+                saldoAcumulado += entradas - saidas;
+                
+                dadosFinanceiros.fluxoCaixa.labels.push(dia + '/' + (data.getMonth() + 1));
+                dadosFinanceiros.fluxoCaixa.entradas.push(entradas);
+                dadosFinanceiros.fluxoCaixa.saidas.push(saidas);
+                dadosFinanceiros.fluxoCaixa.saldos.push(saldoAcumulado);
+            }
+        }
+
+        // Criar gráfico de evolução mensal
+        function criarGraficoEvolucao() {
+            const ctx = document.getElementById('evolucaoChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dadosFinanceiros.evolucaoMensal.labels,
+                    datasets: [
+                        {
+                            label: 'Receitas',
+                            data: dadosFinanceiros.evolucaoMensal.receitas,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Despesas',
+                            data: dadosFinanceiros.evolucaoMensal.despesas,
+                            borderColor: '#EF4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Lucro',
+                            data: dadosFinanceiros.evolucaoMensal.lucros,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Criar gráfico de distribuição de receitas
+        function criarGraficoReceitas() {
+            const ctx = document.getElementById('receitasChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: dadosFinanceiros.distribuicaoReceitas.labels,
+                    datasets: [{
+                        data: dadosFinanceiros.distribuicaoReceitas.valores,
+                        backgroundColor: dadosFinanceiros.distribuicaoReceitas.cores,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Criar gráfico de fluxo de caixa
+        function criarGraficoFluxoCaixa() {
+            const ctx = document.getElementById('fluxoCaixaChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dadosFinanceiros.fluxoCaixa.labels,
+                    datasets: [
+                        {
+                            label: 'Entradas',
+                            data: dadosFinanceiros.fluxoCaixa.entradas,
+                            backgroundColor: '#10B981',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Saídas',
+                            data: dadosFinanceiros.fluxoCaixa.saidas,
+                            backgroundColor: '#EF4444',
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Carregar dados do dashboard financeiro
+        async function carregarDashboardFinanceiro() {
+            try {
+                console.log('Carregando dados financeiros...');
+                
+                // Gerar dados de fluxo de caixa
+                gerarDadosFluxoCaixa();
+                
+                // Criar gráficos
+                criarGraficoEvolucao();
+                criarGraficoReceitas();
+                criarGraficoFluxoCaixa();
+                
+                console.log('Dashboard financeiro carregado com sucesso!');
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados financeiros:', error);
+            }
+        }
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDashboardFinanceiro();
+        });
+
+        // Adicionar interatividade aos botões
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', function() {
+                const texto = this.textContent.trim();
+                
+                if (texto.includes('DRE Mensal')) {
+                    alert('📊 Funcionalidade: Gerar Demonstrativo de Resultado do Exercício mensal com receitas, despesas e lucro detalhados');
+                } else if (texto.includes('Fluxo de Caixa')) {
+                    alert('💰 Funcionalidade: Relatório detalhado de fluxo de caixa com projeções e análise de liquidez');
+                } else if (texto.includes('Análise ROI')) {
+                    alert('🎯 Funcionalidade: Análise completa de ROI dos investimentos com payback e valor presente líquido');
+                } else if (texto.includes('Exportar PDF')) {
+                    alert('📄 Funcionalidade: Exportar relatórios financeiros em PDF para apresentações e arquivamento');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

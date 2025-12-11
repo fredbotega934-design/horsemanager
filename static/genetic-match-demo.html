@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acasalamento Inteligente - Genetic Match Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="dna" class="w-8 h-8"></i>
+                    <div>
+                        <h1 class="text-2xl font-bold">Acasalamento Inteligente</h1>
+                        <p class="text-blue-100">Genetic Match Engine - IA Preditiva</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm">Haras São João</span>
+                    <a href="dashboard-integrado.html" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
+                        Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Doadora Selecionada -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-4">
+                <i data-lucide="heart" class="w-6 h-6 text-pink-500"></i>
+                <h3 class="text-lg font-semibold">Doadora Selecionada: Estrela Dourada</h3>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-600">Estrela Dourada</div>
+                    <div class="text-sm text-gray-500">Mangalarga</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold">8.7 anos</div>
+                    <div class="text-sm text-gray-500">Idade</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold">75%</div>
+                    <div class="text-sm text-gray-500">Taxa Prenhez</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-lg font-semibold">82%</div>
+                    <div class="text-sm text-gray-500">Score Genético</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processamento IA -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg p-6 mb-8 border-l-4 border-blue-500">
+            <div class="flex items-center space-x-3 mb-4">
+                <i data-lucide="brain" class="w-6 h-6 text-blue-500"></i>
+                <h3 class="text-lg font-semibold">Processamento IA Concluído</h3>
+                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">1.8s</span>
+            </div>
+            <p class="text-gray-700">
+                <strong>Análise Genética:</strong> Processados 5 garanhões disponíveis • 
+                <strong>Algoritmo:</strong> XGBoost v1 • 
+                <strong>Features:</strong> 13 características analisadas • 
+                <strong>Confiança:</strong> 87-92%
+            </p>
+        </div>
+
+        <!-- Ranking de Recomendações -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center space-x-3">
+                    <i data-lucide="trophy" class="w-6 h-6 text-yellow-500"></i>
+                    <h2 class="text-xl font-semibold">Ranking de Acasalamentos</h2>
+                </div>
+                <div class="text-sm text-gray-600">Categoria: Conformação • Orçamento: R$ 25.000</div>
+            </div>
+            
+            <!-- Recomendação #1 -->
+            <div class="bg-gradient-to-r from-white to-gray-50 rounded-lg p-6 border-l-4 border-yellow-500 card-hover mb-4">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 font-bold">1</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800">Imperador</h4>
+                            <p class="text-sm text-gray-600">Mangalarga • 11.8 anos • R$ 15.000</p>
+                        </div>
+                    </div>
+                    <i data-lucide="medal" class="w-6 h-6 text-yellow-500"></i>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-xl font-bold text-green-600">84.2%</div>
+                        <div class="text-xs text-gray-600">Taxa Prenhez</div>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-xl font-bold text-blue-600">91.5%</div>
+                        <div class="text-xs text-gray-600">Score Genético</div>
+                    </div>
+                    <div class="text-center p-3 bg-purple-50 rounded-lg">
+                        <div class="text-xl font-bold text-purple-600">67.3%</div>
+                        <div class="text-xs text-gray-600">ROI Estimado</div>
+                    </div>
+                    <div class="text-center p-3 bg-orange-50 rounded-lg">
+                        <div class="text-xl font-bold text-orange-600">R$ 51.070</div>
+                        <div class="text-xs text-gray-600">Lucro Esperado</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700 mb-2">
+                        <strong>Justificativa IA:</strong> Acasalamento com probabilidade muito alta de prenhez (84.2%) e excelente ROI (67.3%). Performance esperada da progênie: 91.5%.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded">Confiança: 89.2%</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Consanguinidade: 0%</span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <h5 class="font-semibold text-green-700 mb-1">Fatores Positivos:</h5>
+                        <ul class="space-y-1">
+                            <li class="flex items-start"><i data-lucide="check" class="w-3 h-3 text-green-500 mr-1 mt-0.5 flex-shrink-0"></i><span>Doadora em idade reprodutiva ideal (8.7 anos)</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-3 h-3 text-green-500 mr-1 mt-0.5 flex-shrink-0"></i><span>Baixo coeficiente de consanguinidade</span></li>
+                            <li class="flex items-start"><i data-lucide="check" class="w-3 h-3 text-green-500 mr-1 mt-0.5 flex-shrink-0"></i><span>Alta expectativa de performance da progênie</span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h5 class="font-semibold text-gray-700 mb-1">Análise Financeira:</h5>
+                        <div class="space-y-1">
+                            <div>Custo Total: R$ 19.500</div>
+                            <div>Valor Potro: R$ 85.000</div>
+                            <div class="font-semibold text-green-600">Lucro: R$ 51.070</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recomendação #2 -->
+            <div class="bg-gradient-to-r from-white to-gray-50 rounded-lg p-6 border-l-4 border-gray-400 card-hover mb-4">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold">2</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800">Majestoso</h4>
+                            <p class="text-sm text-gray-600">Mangalarga • 13.5 anos • R$ 20.000</p>
+                        </div>
+                    </div>
+                    <i data-lucide="medal" class="w-6 h-6 text-gray-400"></i>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-xl font-bold text-green-600">81.7%</div>
+                        <div class="text-xs text-gray-600">Taxa Prenhez</div>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-xl font-bold text-blue-600">93.2%</div>
+                        <div class="text-xs text-gray-600">Score Genético</div>
+                    </div>
+                    <div class="text-center p-3 bg-purple-50 rounded-lg">
+                        <div class="text-xl font-bold text-purple-600">58.9%</div>
+                        <div class="text-xs text-gray-600">ROI Estimado</div>
+                    </div>
+                    <div class="text-center p-3 bg-orange-50 rounded-lg">
+                        <div class="text-xl font-bold text-orange-600">R$ 51.615</div>
+                        <div class="text-xs text-gray-600">Lucro Esperado</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700 mb-2">
+                        <strong>Justificativa IA:</strong> Acasalamento com probabilidade alta de prenhez (81.7%) e bom ROI (58.9%). Excelente score genético (93.2%).
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded">Confiança: 91.5%</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Consanguinidade: 0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recomendação #3 -->
+            <div class="bg-gradient-to-r from-white to-gray-50 rounded-lg p-6 border-l-4 border-orange-500 card-hover">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="flex items-center justify-center w-8 h-8 rounded-full bg-orange-100 text-orange-600 font-bold">3</div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800">Trovão Negro</h4>
+                            <p class="text-sm text-gray-600">Mangalarga • 12.4 anos • R$ 8.000</p>
+                        </div>
+                    </div>
+                    <i data-lucide="medal" class="w-6 h-6 text-orange-500"></i>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div class="text-center p-3 bg-green-50 rounded-lg">
+                        <div class="text-xl font-bold text-green-600">78.5%</div>
+                        <div class="text-xs text-gray-600">Taxa Prenhez</div>
+                    </div>
+                    <div class="text-center p-3 bg-blue-50 rounded-lg">
+                        <div class="text-xl font-bold text-blue-600">85.7%</div>
+                        <div class="text-xs text-gray-600">Score Genético</div>
+                    </div>
+                    <div class="text-center p-3 bg-purple-50 rounded-lg">
+                        <div class="text-xl font-bold text-purple-600">89.2%</div>
+                        <div class="text-xs text-gray-600">ROI Estimado</div>
+                    </div>
+                    <div class="text-center p-3 bg-orange-50 rounded-lg">
+                        <div class="text-xl font-bold text-orange-600">R$ 46.120</div>
+                        <div class="text-xs text-gray-600">Lucro Esperado</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-700 mb-2">
+                        <strong>Justificativa IA:</strong> Acasalamento com probabilidade alta de prenhez (78.5%) e excelente ROI (89.2%). Boa relação custo-benefício.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs">
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded">Confiança: 87.3%</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">Consanguinidade: 0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análise Comparativa -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Gráfico de Performance -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-green-500"></i>
+                    Análise de Performance
+                </h3>
+                <canvas id="performanceChart" width="400" height="300"></canvas>
+            </div>
+
+            <!-- Gráfico de ROI -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i data-lucide="trending-up" class="w-5 h-5 mr-2 text-blue-500"></i>
+                    Análise de ROI
+                </h3>
+                <canvas id="roiChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Simulador de Cenários -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center space-x-3 mb-6">
+                <i data-lucide="calculator" class="w-6 h-6 text-purple-500"></i>
+                <h3 class="text-lg font-semibold">Simulador de Cenários - Imperador</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-3">Cenário Base</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>ROI:</span>
+                            <span class="font-semibold">67.3%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Valor Potro:</span>
+                            <span>R$ 85.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Custo Total:</span>
+                            <span>R$ 19.500</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-2">
+                            <span>Lucro:</span>
+                            <span class="font-semibold text-green-600">R$ 51.070</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-3">Cenário Otimista (+20% preço)</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>ROI:</span>
+                            <span class="font-semibold text-green-600">87.1%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Valor Potro:</span>
+                            <span>R$ 102.000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Custo Total:</span>
+                            <span>R$ 19.500</span>
+                        </div>
+                        <div class="flex justify-between border-t pt-2">
+                            <span>Lucro:</span>
+                            <span class="font-semibold text-green-600">R$ 65.384</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-blue-50 rounded-lg">
+                <h5 class="font-semibold text-blue-800 mb-2">Impacto da Simulação</h5>
+                <div class="text-sm text-blue-700">
+                    <div>Diferença no ROI: <span class="font-semibold">+19.8%</span></div>
+                    <div>Diferença no Lucro: <span class="font-semibold">+R$ 14.314</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explicabilidade IA -->
+        <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl shadow-lg p-6 mb-8 border-l-4 border-purple-500">
+            <div class="flex items-center space-x-3 mb-4">
+                <i data-lucide="lightbulb" class="w-6 h-6 text-purple-500"></i>
+                <h3 class="text-lg font-semibold">Explicabilidade IA (SHAP)</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Fatores Mais Importantes</h4>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Score Genético Combinado:</span>
+                            <span class="font-semibold text-green-600">+15.2%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Idade da Doadora:</span>
+                            <span class="font-semibold text-green-600">+12.8%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Taxa Prenhez Histórica:</span>
+                            <span class="font-semibold text-green-600">+9.4%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Compatibilidade Racial:</span>
+                            <span class="font-semibold text-green-600">+7.1%</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Algoritmo Utilizado</h4>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Modelo:</strong> XGBoost Regressor</div>
+                        <div><strong>Features:</strong> 13 características</div>
+                        <div><strong>Acurácia:</strong> 87.3%</div>
+                        <div><strong>Validação:</strong> Cross-validation 5-fold</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Dados de Treinamento</h4>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Amostras:</strong> 1.000 acasalamentos</div>
+                        <div><strong>Período:</strong> 2020-2025</div>
+                        <div><strong>Haras:</strong> 15 propriedades</div>
+                        <div><strong>Última Atualização:</strong> Out/2025</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i data-lucide="zap" class="w-5 h-5 mr-2 text-orange-500"></i>
+                Ações Rápidas
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <button class="flex items-center justify-center space-x-2 bg-green-50 text-green-700 p-4 rounded-lg hover:bg-green-100 transition-colors">
+                    <i data-lucide="calendar-plus" class="w-5 h-5"></i>
+                    <span>Agendar Protocolo</span>
+                </button>
+                <button class="flex items-center justify-center space-x-2 bg-blue-50 text-blue-700 p-4 rounded-lg hover:bg-blue-100 transition-colors">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <span>Gerar Relatório PDF</span>
+                </button>
+                <button class="flex items-center justify-center space-x-2 bg-purple-50 text-purple-700 p-4 rounded-lg hover:bg-purple-100 transition-colors">
+                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                    <span>Compartilhar Análise</span>
+                </button>
+                <button class="flex items-center justify-center space-x-2 bg-orange-50 text-orange-700 p-4 rounded-lg hover:bg-orange-100 transition-colors">
+                    <i data-lucide="repeat" class="w-5 h-5"></i>
+                    <span>Nova Análise</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicializar ícones Lucide
+        lucide.createIcons();
+
+        // Criar gráficos
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gráfico de Performance
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            new Chart(performanceCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Taxa Prenhez', 'Score Genético', 'ROI', 'Confiança'],
+                    datasets: [
+                        {
+                            label: 'Imperador',
+                            data: [84.2, 91.5, 67.3, 89.2],
+                            borderColor: '#3B82F6',
+                            backgroundColor: '#3B82F620',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Majestoso',
+                            data: [81.7, 93.2, 58.9, 91.5],
+                            borderColor: '#10B981',
+                            backgroundColor: '#10B98120',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Trovão Negro',
+                            data: [78.5, 85.7, 89.2, 87.3],
+                            borderColor: '#8B5CF6',
+                            backgroundColor: '#8B5CF620',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de ROI
+            const roiCtx = document.getElementById('roiChart').getContext('2d');
+            new Chart(roiCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Imperador', 'Majestoso', 'Trovão Negro'],
+                    datasets: [{
+                        label: 'ROI Estimado (%)',
+                        data: [67.3, 58.9, 89.2],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(139, 92, 246, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(139, 92, 246, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

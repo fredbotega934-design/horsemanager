@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custo por Prenhez - Itens</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos para garantir a legibilidade em dispositivos móveis */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .table-responsive table {
+            width: 100%;
+            min-width: 600px; /* Garante que a tabela não fique muito estreita */
+        }
+        .btn-action {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <div class="container mx-auto p-4 sm:p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Módulo Custo por Prenhez</h1>
+        
+        <!-- Navegação (Simples para demonstração) -->
+        <nav class="mb-6 flex space-x-4">
+            <a href="custo-itens-dashboard.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md hover:bg-indigo-700 transition duration-150">Itens e Medicamentos</a>
+            <a href="custo-procedimentos-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md hover:bg-indigo-50 transition duration-150">Procedimentos</a>
+            <a href="custo-prenhez-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md hover:bg-indigo-50 transition duration-150">Cálculo Prenhez</a>
+        </nav>
+
+        <!-- Área de Cadastro de Item -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Cadastrar Novo Item/Medicamento</h2>
+            <form id="itemForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="nome" class="block text-sm font-medium text-gray-700">Nome do Item/Medicamento</label>
+                    <input type="text" id="nome" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <div>
+                    <label for="categoria" class="block text-sm font-medium text-gray-700">Categoria</label>
+                    <select id="categoria" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        <option value="">Selecione</option>
+                        <option value="hormônio">Hormônio</option>
+                        <option value="insumo">Insumo</option>
+                        <option value="mão de obra">Mão de Obra</option>
+                        <option value="ultrassom">Ultrassom</option>
+                        <option value="material de coleta">Material de Coleta</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="valor_total" class="block text-sm font-medium text-gray-700">Valor Total (R$)</label>
+                    <input type="number" step="0.01" id="valor_total" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <div>
+                    <label for="quantidade_total" class="block text-sm font-medium text-gray-700">Quantidade Total (Frasco/Unidade)</label>
+                    <input type="number" step="0.01" id="quantidade_total" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <div>
+                    <label for="unidade_medida" class="block text-sm font-medium text-gray-700">Unidade de Medida</label>
+                    <select id="unidade_medida" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                        <option value="mL">mL</option>
+                        <option value="UI">UI</option>
+                        <option value="Unidade">Unidade</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dose_usada" class="block text-sm font-medium text-gray-700">Dose Usada no Procedimento</label>
+                    <input type="number" step="0.01" id="dose_usada" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                </div>
+                <div class="md:col-span-3">
+                    <label for="observacoes" class="block text-sm font-medium text-gray-700">Observações</label>
+                    <textarea id="observacoes" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+                </div>
+                <div class="md:col-span-3 flex justify-end">
+                    <button type="submit" class="px-6 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-150">Salvar Item</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabela de Itens Cadastrados -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Itens Cadastrados</h2>
+            <div class="table-responsive">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dose Usada</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custo da Dose (R$)</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itensTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Linhas de itens serão inseridas aqui pelo JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <p id="loadingMessage" class="text-center py-4 text-gray-500">Carregando itens...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api/custo_prenhez/custo_itens';
+        const token = 'SEU_TOKEN_JWT_AQUI'; // Substituir pelo token real do usuário logado
+
+        // Função auxiliar para formatar moeda
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        };
+
+        // Função para buscar e renderizar os itens
+        async function fetchAndRenderItens() {
+            const tableBody = document.getElementById('itensTableBody');
+            const loadingMessage = document.getElementById('loadingMessage');
+            tableBody.innerHTML = '';
+            loadingMessage.classList.remove('hidden');
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao buscar itens: ' + response.statusText);
+                }
+
+                const itens = await response.json();
+                loadingMessage.classList.add('hidden');
+
+                if (itens.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nenhum item cadastrado.</td></tr>';
+                    return;
+                }
+
+                itens.forEach(item => {
+                    const row = tableBody.insertRow();
+                    row.className = 'hover:bg-gray-50';
+                    
+                    row.insertCell().textContent = item.nome;
+                    row.insertCell().textContent = item.categoria;
+                    row.insertCell().textContent = `${item.dose_usada} ${item.unidade_medida}`;
+                    row.insertCell().textContent = formatCurrency(item.custo_da_dose);
+                    
+                    const actionsCell = row.insertCell();
+                    actionsCell.className = 'px-4 py-4 whitespace-nowrap text-sm font-medium';
+                    
+                    const editButton = document.createElement('button');
+                    editButton.textContent = 'Editar';
+                    editButton.className = 'btn-action bg-yellow-500 text-white rounded-md mr-2 hover:bg-yellow-600';
+                    editButton.onclick = () => openEditModal(item);
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Excluir';
+                    deleteButton.className = 'btn-action bg-red-600 text-white rounded-md hover:bg-red-700';
+                    deleteButton.onclick = () => deleteItem(item.id, item.nome);
+                    
+                    actionsCell.appendChild(editButton);
+                    actionsCell.appendChild(deleteButton);
+                });
+
+            } catch (error) {
+                console.error('Erro:', error);
+                loadingMessage.textContent = 'Erro ao carregar dados. Verifique o console.';
+            }
+        }
+
+        // Função para enviar o formulário de novo item
+        document.getElementById('itemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const data = {
+                nome: document.getElementById('nome').value,
+                categoria: document.getElementById('categoria').value,
+                valor_total: parseFloat(document.getElementById('valor_total').value),
+                quantidade_total: parseFloat(document.getElementById('quantidade_total').value),
+                unidade_medida: document.getElementById('unidade_medida').value,
+                dose_usada: parseFloat(document.getElementById('dose_usada').value),
+                observacoes: document.getElementById('observacoes').value
+            };
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error('Falha ao cadastrar item: ' + (errorData.msg || response.statusText));
+                }
+
+                alert('Item cadastrado com sucesso!');
+                document.getElementById('itemForm').reset();
+                fetchAndRenderItens(); // Recarrega a tabela
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao cadastrar item: ' + error.message);
+            }
+        });
+
+        // Função para deletar item
+        async function deleteItem(itemId, itemName) {
+            if (!confirm(`Tem certeza que deseja excluir o item "${itemName}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${itemId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error('Falha ao excluir item: ' + (errorData.msg || response.statusText));
+                }
+
+                alert('Item excluído com sucesso!');
+                fetchAndRenderItens(); // Recarrega a tabela
+            } catch (error) {
+                console.error('Erro:', error);
+                alert('Erro ao excluir item: ' + error.message);
+            }
+        }
+
+        // TODO: Implementar Modal de Edição (openEditModal)
+
+        // Carregar itens ao carregar a página
+        window.onload = fetchAndRenderItens;
+    </script>
+</body>
+</html>
