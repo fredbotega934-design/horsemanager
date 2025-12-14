@@ -45,7 +45,7 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <span class="text-sm opacity-90" id="userInfo">Usuário: --</span>
-                    <a href="dashboard-integrado.html" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
+                    <a href="/" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg transition-all">
                         <i data-lucide="arrow-left" class="w-4 h-4 inline mr-2"></i>
                         Voltar ao Dashboard
                     </a>
@@ -223,13 +223,13 @@
 
         // Verificar autenticação
         if (!authToken || !currentUser.id) {
-            window.location.href = 'dashboard-integrado.html';
+            window.location.href = '/';
         }
 
         // Verificar permissões
         if (currentUser.role !== 'proprietario' && currentUser.role !== 'admin') {
             alert('Você não tem permissão para acessar esta página.');
-            window.location.href = 'dashboard-integrado.html';
+            window.location.href = '/';
         }
 
         // Atualizar informações do usuário
@@ -551,7 +551,7 @@
         function logout() {
             localStorage.removeItem('authToken');
             localStorage.removeItem('currentUser');
-            window.location.href = 'dashboard-integrado.html';
+            window.location.href = '/';
         }
     </script>
 </body>
