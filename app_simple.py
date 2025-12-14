@@ -3,7 +3,7 @@ from flask import Flask, send_from_directory, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import timedelta
+from sqlalchemy import text
 
 # Rotas
 from routes.receptoras import receptoras_bp
@@ -16,7 +16,7 @@ from routes.general import general_bp
 from models.database import db_session, init_db, engine, Base
 from models.user import Usuario
 
-# Modelos
+# Modelos (Importar todos para que o SQLAlchemy os conheça)
 import models.receptora
 import models.financeiro
 import models.custo_prenhez
@@ -25,7 +25,6 @@ import models.embryo
 import models.properties
 
 def create_app():
-    # Define a pasta static como local dos arquivos HTML/CSS/JS
     app = Flask(__name__, static_folder='static', static_url_path='')
     
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
@@ -33,14 +32,10 @@ def create_app():
     CORS(app)
     JWTManager(app)
 
-    # --- REGISTRO DAS ROTAS (Ajustado para bater com seu HTML) ---
+    # Registro de Blueprints
     app.register_blueprint(receptoras_bp, url_prefix='/api/receptoras')
     app.register_blueprint(financeiro_bp, url_prefix='/api/financeiro')
-    
-    # MUDANÇA IMPORTANTE: Mudamos de '/api/custo' para '/api/custo_prenhez'
-    # para funcionar com seus arquivos HTML
     app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
-    
     app.register_blueprint(biotech_bp, url_prefix='/api/biotech')
     app.register_blueprint(embryo_bp, url_prefix='/api/embrioes')
     app.register_blueprint(general_bp, url_prefix='/api/geral')
@@ -71,8 +66,23 @@ def create_app():
     @app.route('/api/resetar-banco-completo', methods=['GET'])
     def reset_db():
         try:
+            # 1. FORÇA BRUTA: Limpar tabelas zumbis que travam o reset
+            with engine.connect() as conn:
+                conn.execute(text("DROP TABLE IF EXISTS itens_procedimento CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS itens_custo CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS procedimentos CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS calculos_prenhez CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS procedimento_itens CASCADE"))
+                conn.execute(text("DROP TABLE IF EXISTS calculo_procedimentos CASCADE"))
+                conn.commit()
+
+            # 2. Drop All padrão do SQLAlchemy (para o resto)
             Base.metadata.drop_all(bind=engine)
+            
+            # 3. Recriar tudo do zero
             Base.metadata.create_all(bind=engine)
+            
+            # 4. Criar Admin
             admin = Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao")
             db_session.add(admin)
             db_session.commit()
@@ -80,12 +90,10 @@ def create_app():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
-    # Rota para servir a página inicial (Login/Dashboard)
     @app.route('/')
     def index():
         return app.send_static_file('dashboard-integrado.html')
 
-    # Rota genérica para servir qualquer arquivo HTML na pasta static
     @app.route('/<path:path>')
     def static_files(path):
         return app.send_static_file(path)
