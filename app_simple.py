@@ -16,7 +16,6 @@ from routes.general import general_bp
 from models.database import db_session, init_db, engine, Base
 from models.user import Usuario
 
-# Modelos (Importar todos para que o SQLAlchemy os conheça)
 import models.receptora
 import models.financeiro
 import models.custo_prenhez
@@ -25,6 +24,7 @@ import models.embryo
 import models.properties
 
 def create_app():
+    # Define a pasta static
     app = Flask(__name__, static_folder='static', static_url_path='')
     
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
@@ -32,7 +32,7 @@ def create_app():
     CORS(app)
     JWTManager(app)
 
-    # Registro de Blueprints
+    # Registro das Rotas
     app.register_blueprint(receptoras_bp, url_prefix='/api/receptoras')
     app.register_blueprint(financeiro_bp, url_prefix='/api/financeiro')
     app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
@@ -59,14 +59,12 @@ def create_app():
             if not db_session.query(Usuario).filter_by(email="admin@haras.com").first():
                 db_session.add(Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao"))
                 db_session.commit()
-            return jsonify({"msg":"Banco Atualizado e Admin Criado"}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"msg":"Banco Atualizado"}), 200
+        except Exception as e: return jsonify({"error": str(e)}), 500
 
     @app.route('/api/resetar-banco-completo', methods=['GET'])
     def reset_db():
         try:
-            # 1. FORÇA BRUTA: Limpar tabelas zumbis que travam o reset
             with engine.connect() as conn:
                 conn.execute(text("DROP TABLE IF EXISTS itens_procedimento CASCADE"))
                 conn.execute(text("DROP TABLE IF EXISTS itens_custo CASCADE"))
@@ -75,24 +73,19 @@ def create_app():
                 conn.execute(text("DROP TABLE IF EXISTS procedimento_itens CASCADE"))
                 conn.execute(text("DROP TABLE IF EXISTS calculo_procedimentos CASCADE"))
                 conn.commit()
-
-            # 2. Drop All padrão do SQLAlchemy (para o resto)
             Base.metadata.drop_all(bind=engine)
-            
-            # 3. Recriar tudo do zero
             Base.metadata.create_all(bind=engine)
-            
-            # 4. Criar Admin
             admin = Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao")
             db_session.add(admin)
             db_session.commit()
             return jsonify({"message": "BANCO RESETADO COM SUCESSO."}), 200
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        except Exception as e: return jsonify({"error": str(e)}), 500
 
+    # Rota Principal Alterada
     @app.route('/')
     def index():
-        return app.send_static_file('dashboard-integrado.html')
+        # Forçando o arquivo NOVO
+        return app.send_static_file('dashboard-avancado.html')
 
     @app.route('/<path:path>')
     def static_files(path):
