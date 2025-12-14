@@ -1,39 +1,61 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Table
 from sqlalchemy.orm import relationship
 from models.database import Base
+from datetime import datetime
+
+# Tabela de associação (Muitos-para-Muitos) entre Procedimento e Item
+procedimento_itens = Table('procedimento_itens', Base.metadata,
+    Column('procedimento_id', Integer, ForeignKey('procedimentos.id')),
+    Column('item_id', Integer, ForeignKey('itens_custo.id'))
+)
+
+# Tabela de associação entre Calculo e Procedimento
+calculo_procedimentos = Table('calculo_procedimentos', Base.metadata,
+    Column('calculo_id', Integer, ForeignKey('calculos_prenhez.id')),
+    Column('procedimento_id', Integer, ForeignKey('procedimentos.id'))
+)
 
 class ItemCusto(Base):
     __tablename__ = 'itens_custo'
-
     id = Column(Integer, primary_key=True)
     tenant_id = Column(String(50))
     nome = Column(String(100), nullable=False)
-    categoria = Column(String(50)) # Hormonio, Insumo, Mao de Obra, etc.
-    valor_total_frasco = Column(Float)
-    quantidade_total_frasco = Column(Float) # Em ml ou unidades
-    unidade_medida = Column(String(20)) # ml, un, dose
-    
-    # Propriedade calculada virtualmente no frontend/rota, mas podemos guardar cache
-    custo_por_unidade = Column(Float) 
+    categoria = Column(String(50)) # Hormonio, Material, etc
+    valor_total = Column(Float)
+    quantidade_total = Column(Float)
+    unidade_medida = Column(String(20)) # ml, frasco, un
+    dose_usada = Column(Float)
+    custo_da_dose = Column(Float)
 
-class ProcedimentoCusto(Base):
-    __tablename__ = 'procedimentos_custo'
-
+class Procedimento(Base):
+    __tablename__ = 'procedimentos'
     id = Column(Integer, primary_key=True)
     tenant_id = Column(String(50))
-    nome = Column(String(100)) # Ex: Inseminacao Sêmen Fresco
-    custo_total_calculado = Column(Float)
-    descricao = Column(Text)
+    nome = Column(String(100)) # Ex: Inseminacao
+    tipo = Column(String(50))
+    custo_total = Column(Float)
+    
+    # Relacionamento com itens
+    itens_usados = relationship("ItemCusto", secondary=procedimento_itens, backref="procedimentos")
 
-# Tabela de ligação: Quais itens compõem um procedimento?
-class ItemNoProcedimento(Base):
-    __tablename__ = 'itens_procedimento'
-    
+class CalculoPrenhez(Base):
+    __tablename__ = 'calculos_prenhez'
     id = Column(Integer, primary_key=True)
-    procedimento_id = Column(Integer, ForeignKey('procedimentos_custo.id'))
-    item_id = Column(Integer, ForeignKey('itens_custo.id'))
-    dose_usada = Column(Float)
-    custo_calculado_dose = Column(Float)
+    tenant_id = Column(String(50))
+    nome = Column(String(100)) # Ex: Protocolo Doadora X
+    num_ciclos = Column(Integer, default=1)
+    num_tentativas = Column(Integer, default=1)
     
-    item = relationship("ItemCusto")
-    procedimento = relationship("ProcedimentoCusto", backref="itens")
+    custo_medio_ciclo = Column(Float)
+    custo_total_prenhez = Column(Float)
+    
+    data_criacao = Column(Date, default=datetime.utcnow)
+    
+    # Relacionamento com procedimentos
+    procedimentos_usados = relationship("Procedimento", secondary=calculo_procedimentos, backref="calculos")
+
+# Classe auxiliar para compatibilidade (se necessario no futuro)
+class ProcedimentoCalculo(Base):
+    __tablename__ = 'procedimento_calculo_link'
+    id = Column(Integer, primary_key=True)
+    dummy = Column(Integer)
