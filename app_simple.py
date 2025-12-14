@@ -25,15 +25,22 @@ import models.embryo
 import models.properties
 
 def create_app():
-    app = Flask(__name__, static_folder='static', template_folder='static')
+    # Define a pasta static como local dos arquivos HTML/CSS/JS
+    app = Flask(__name__, static_folder='static', static_url_path='')
+    
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
     app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'jwt-key')
     CORS(app)
     JWTManager(app)
 
+    # --- REGISTRO DAS ROTAS (Ajustado para bater com seu HTML) ---
     app.register_blueprint(receptoras_bp, url_prefix='/api/receptoras')
     app.register_blueprint(financeiro_bp, url_prefix='/api/financeiro')
-    app.register_blueprint(custo_bp, url_prefix='/api/custo')
+    
+    # MUDANÇA IMPORTANTE: Mudamos de '/api/custo' para '/api/custo_prenhez'
+    # para funcionar com seus arquivos HTML
+    app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
+    
     app.register_blueprint(biotech_bp, url_prefix='/api/biotech')
     app.register_blueprint(embryo_bp, url_prefix='/api/embrioes')
     app.register_blueprint(general_bp, url_prefix='/api/geral')
@@ -47,16 +54,19 @@ def create_app():
         u = db_session.query(Usuario).filter_by(email=d.get('email')).first()
         if u and check_password_hash(u.password_hash, d.get('password')):
             t = create_access_token(identity=str(u.id), additional_claims={"role":u.role,"tenant_id":u.tenant_id})
-            return jsonify({"token":t, "user":{"nome":u.nome}}), 200
-        return jsonify({"msg":"Erro"}), 401
+            return jsonify({"token":t, "user":{"nome":u.nome, "role":u.role}}), 200
+        return jsonify({"msg":"Erro de credenciais"}), 401
 
     @app.route('/api/criar-admin', methods=['GET'])
     def setup():
-        Base.metadata.create_all(bind=engine)
-        if not db_session.query(Usuario).filter_by(email="admin@haras.com").first():
-            db_session.add(Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao"))
-            db_session.commit()
-        return jsonify({"msg":"Banco Atualizado"}), 200
+        try:
+            Base.metadata.create_all(bind=engine)
+            if not db_session.query(Usuario).filter_by(email="admin@haras.com").first():
+                db_session.add(Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao"))
+                db_session.commit()
+            return jsonify({"msg":"Banco Atualizado e Admin Criado"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/api/resetar-banco-completo', methods=['GET'])
     def reset_db():
@@ -70,8 +80,15 @@ def create_app():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+    # Rota para servir a página inicial (Login/Dashboard)
     @app.route('/')
-    def index(): return send_from_directory('static', 'dashboard-integrado.html')
+    def index():
+        return app.send_static_file('dashboard-integrado.html')
+
+    # Rota genérica para servir qualquer arquivo HTML na pasta static
+    @app.route('/<path:path>')
+    def static_files(path):
+        return app.send_static_file(path)
     
     @app.route('/health')
     def health(): return jsonify({'status': 'online'})

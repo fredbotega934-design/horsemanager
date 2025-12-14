@@ -1,82 +1,129 @@
 from flask import Blueprint, request, jsonify
-from models.custo_prenhez import ItemCusto, ProcedimentoCusto, ItemNoProcedimento
+from models.custo_prenhez import ItemCusto, Procedimento, CalculoPrenhez, ProcedimentoCalculo
 from models.database import db_session
-from auth.middleware import token_required, role_required
+from auth.middleware import token_required
+from datetime import datetime
 
 custo_bp = Blueprint("custo_prenhez", __name__)
 
-# --- 1. GERENCIAR ITENS (Medicamentos, Insumos) ---
-@custo_bp.route("/itens", methods=["POST"])
+# --- ITENS ---
+@custo_bp.route("/custo_itens", methods=["GET"])
+@token_required
+def get_itens(current_user):
+    itens = db_session.query(ItemCusto).filter_by(tenant_id=current_user.tenant_id).all()
+    return jsonify([{
+        "id": i.id, "nome": i.nome, "categoria": i.categoria,
+        "dose_usada": i.dose_usada, "unidade_medida": i.unidade_medida,
+        "custo_da_dose": i.custo_da_dose
+    } for i in itens]), 200
+
+@custo_bp.route("/custo_itens", methods=["POST"])
 @token_required
 def add_item(current_user):
     data = request.get_json()
-    try:
-        # Calcula custo unitario (ex: R$ 100 frasco / 50ml = R$ 2/ml)
-        valor_total = float(data['valor_total'])
-        qtd_total = float(data['qtd_total'])
-        custo_unit = valor_total / qtd_total if qtd_total > 0 else 0
+    # Calculo do custo da dose: (Valor Total / Qtd Total) * Dose Usada
+    custo_dose = (float(data['valor_total']) / float(data['quantidade_total'])) * float(data['dose_usada'])
+    
+    novo = ItemCusto(
+        tenant_id=current_user.tenant_id,
+        nome=data['nome'], categoria=data['categoria'],
+        valor_total=data['valor_total'], quantidade_total=data['quantidade_total'],
+        unidade_medida=data['unidade_medida'], dose_usada=data['dose_usada'],
+        custo_da_dose=custo_dose
+    )
+    db_session.add(novo)
+    db_session.commit()
+    return jsonify({"message": "Item criado"}), 201
 
-        novo_item = ItemCusto(
-            tenant_id=current_user.tenant_id,
-            nome=data['nome'],
-            categoria=data['categoria'],
-            valor_total_frasco=valor_total,
-            quantidade_total_frasco=qtd_total,
-            unidade_medida=data['unidade'],
-            custo_por_unidade=custo_unit
-        )
-        db_session.add(novo_item)
+@custo_bp.route("/custo_itens/<int:id>", methods=["DELETE"])
+@token_required
+def delete_item(current_user, id):
+    item = db_session.query(ItemCusto).get(id)
+    if item:
+        db_session.delete(item)
         db_session.commit()
-        return jsonify({"message": "Item cadastrado", "custo_unitario": f"R$ {custo_unit:.2f}"}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"message": "Deletado"}), 200
+    return jsonify({"error": "Nao encontrado"}), 404
 
-@custo_bp.route("/itens", methods=["GET"])
+# --- PROCEDIMENTOS ---
+@custo_bp.route("/procedimentos", methods=["GET"])
 @token_required
-def list_itens(current_user):
-    itens = db_session.query(ItemCusto).filter_by(tenant_id=current_user.tenant_id).all()
-    res = []
-    for i in itens:
-        res.append({
-            "id": i.id,
-            "nome": i.nome,
-            "categoria": i.categoria,
-            "custo_unitario": f"R$ {i.custo_por_unidade:.2f} / {i.unidade_medida}"
-        })
-    return jsonify(res), 200
+def get_procedimentos(current_user):
+    procs = db_session.query(Procedimento).filter_by(tenant_id=current_user.tenant_id).all()
+    return jsonify([{
+        "id": p.id, "nome": p.nome, "tipo": p.tipo, "custo_total": p.custo_total
+    } for p in procs]), 200
 
-# --- 2. CALCULADORA DE PRENHEZ SIMPLIFICADA ---
-# Para essa versao inicial, vamos fazer um endpoint que recebe os custos e calcula na hora
-@custo_bp.route("/calcular", methods=["POST"])
+@custo_bp.route("/procedimentos", methods=["POST"])
 @token_required
-def calcular_prenhez(current_user):
-    # Payload esperado: 
-    # { "itens": [{"id": 1, "dose": 2}, {"id": 5, "dose": 1}], "ciclos": 3 }
+def add_procedimento(current_user):
     data = request.get_json()
+    # Soma o custo dos itens selecionados
+    itens = db_session.query(ItemCusto).filter(ItemCusto.id.in_(data['itens_ids'])).all()
+    custo_total = sum(i.custo_da_dose for i in itens)
     
-    itens_selecionados = data.get('itens', [])
-    num_ciclos = float(data.get('ciclos', 1))
-    
-    custo_por_ciclo = 0
-    detalhes = []
+    novo = Procedimento(
+        tenant_id=current_user.tenant_id,
+        nome=data['nome'], tipo=data['tipo'], custo_total=custo_total
+    )
+    # Aqui poderiamos salvar a relacao Many-to-Many se necessario
+    db_session.add(novo)
+    db_session.commit()
+    return jsonify({"message": "Procedimento criado"}), 201
 
-    for req in itens_selecionados:
-        item_db = db_session.query(ItemCusto).get(req['id'])
-        if item_db:
-            dose = float(req['dose'])
-            custo_dose = item_db.custo_por_unidade * dose
-            custo_por_ciclo += custo_dose
-            detalhes.append({
-                "item": item_db.nome,
-                "dose": f"{dose} {item_db.unidade_medida}",
-                "custo": f"R$ {custo_dose:.2f}"
-            })
-    
-    custo_total_prenhez = custo_por_ciclo * num_ciclos
+@custo_bp.route("/procedimentos/<int:id>", methods=["DELETE"])
+@token_required
+def delete_proc(current_user, id):
+    proc = db_session.query(Procedimento).get(id)
+    if proc:
+        db_session.delete(proc)
+        db_session.commit()
+        return jsonify({"message": "Deletado"}), 200
+    return jsonify({"error": "Nao encontrado"}), 404
 
-    return jsonify({
-        "custo_medio_ciclo": f"R$ {custo_por_ciclo:.2f}",
-        "custo_total_estimado": f"R$ {custo_total_prenhez:.2f}",
-        "detalhes_ciclo": detalhes,
-        "ciclos_considerados": num_ciclos
-    }), 200
+# --- CALCULO PRENHEZ ---
+@custo_bp.route("/prenhez", methods=["GET"])
+@token_required
+def get_calculos(current_user):
+    calcs = db_session.query(CalculoPrenhez).filter_by(tenant_id=current_user.tenant_id).all()
+    return jsonify([{
+        "id": c.id, "nome": c.nome, 
+        "custo_total_prenhez": c.custo_total_prenhez,
+        "custo_medio_ciclo": c.custo_medio_ciclo,
+        "data_criacao": c.data_criacao.strftime("%d/%m/%Y")
+    } for c in calcs]), 200
+
+@custo_bp.route("/prenhez", methods=["POST"])
+@token_required
+def add_calculo(current_user):
+    data = request.get_json()
+    procs = db_session.query(Procedimento).filter(Procedimento.id.in_(data['procedimentos_ids'])).all()
+    
+    custo_procs = sum(p.custo_total for p in procs)
+    num_ciclos = int(data['num_ciclos'])
+    num_tentativas = int(data['num_tentativas'])
+    
+    custo_medio_ciclo = custo_procs
+    custo_total = custo_medio_ciclo * num_ciclos * num_tentativas
+    
+    novo = CalculoPrenhez(
+        tenant_id=current_user.tenant_id,
+        nome=data['nome'],
+        num_ciclos=num_ciclos, num_tentativas=num_tentativas,
+        custo_medio_ciclo=custo_medio_ciclo,
+        custo_total_prenhez=custo_total,
+        data_criacao=datetime.now()
+    )
+    db_session.add(novo)
+    db_session.commit()
+    return jsonify({"message": "Calculo salvo"}), 201
+
+@custo_bp.route("/prenhez/<int:id>", methods=["DELETE"])
+@token_required
+def delete_calculo(current_user, id):
+    c = db_session.query(CalculoPrenhez).get(id)
+    if c:
+        db_session.delete(c)
+        db_session.commit()
+        return jsonify({"message": "Deletado"}), 200
+    return jsonify({"error": "Nao encontrado"}), 404
