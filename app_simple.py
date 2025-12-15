@@ -8,12 +8,12 @@ from sqlalchemy import text
 # Rotas
 from routes.receptoras import receptoras_bp
 from routes.custo_prenhez import custo_bp
-from routes.integracao import integracao_bp # NOVO
+from routes.integracao import integracao_bp
 
 from models.database import db_session, init_db, engine, Base
 from models.user import Usuario
 
-# Importar modelos para garantir criação das tabelas
+# Importar modelos para garantir criacao das tabelas
 import models.receptora
 import models.custo_prenhez
 import models.extras
@@ -30,8 +30,6 @@ def create_app():
     # --- REGISTRO DAS ROTAS ---
     app.register_blueprint(receptoras_bp, url_prefix='/api/receptoras')
     app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
-    
-    # Rota mestre que cuida de Users, Financeiro e IA
     app.register_blueprint(integracao_bp, url_prefix='/api')
     
     @app.teardown_appcontext
@@ -50,7 +48,6 @@ def create_app():
     def reset_db():
         try:
             with engine.connect() as conn:
-                # Limpeza forçada
                 conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
                 conn.commit()
 
@@ -61,6 +58,16 @@ def create_app():
             db_session.commit()
             return jsonify({"message": "BANCO RESETADO COM SUCESSO."}), 200
         except Exception as e: return jsonify({"error": str(e)}), 500
+
+    # --- NOVA ROTA PARA POPULAR DADOS DAS PLANILHAS ---
+    @app.route('/api/popular-dados-planilha', methods=['GET'])
+    def run_populate():
+        try:
+            from populate_real_data import populate
+            populate()
+            return jsonify({"message": "DADOS REAIS IMPORTADOS COM SUCESSO!"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     @app.route('/')
     def index(): return app.send_static_file('dashboard-avancado.html')
