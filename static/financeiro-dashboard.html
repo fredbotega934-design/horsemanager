@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Financeiro - Haras Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-white shadow p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold text-green-700">Financeiro</h1>
+            <a href="/" class="text-gray-600 hover:text-gray-800 flex items-center">
+                <i data-lucide="arrow-left" class="mr-2"></i> Voltar
+            </a>
+        </div>
+    </header>
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-green-500 text-white p-6 rounded-lg shadow">
+                <h3 class="text-lg">Receitas</h3>
+                <p class="text-3xl font-bold" id="receita">R$ 0,00</p>
+            </div>
+            <div class="bg-red-500 text-white p-6 rounded-lg shadow">
+                <h3 class="text-lg">Despesas</h3>
+                <p class="text-3xl font-bold" id="despesa">R$ 0,00</p>
+            </div>
+            <div class="bg-blue-500 text-white p-6 rounded-lg shadow">
+                <h3 class="text-lg">Saldo</h3>
+                <p class="text-3xl font-bold" id="saldo">R$ 0,00</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="font-bold mb-4">Lançamentos Recentes</h3>
+            <ul id="lista" class="divide-y">
+                <li class="py-2 text-gray-500 text-center">Nenhum lançamento encontrado.</li>
+            </ul>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const API_BASE_URL = '/api';
+        let token = localStorage.getItem('token');
+        
+        async function loadData() {
+            try {
+                const res = await fetch(API_BASE_URL + '/financeiro/lancamentos', { headers: {'Authorization': 'Bearer ' + token} });
+                if(res.status === 401) { alert("Sessão expirada"); window.location.href='/'; return; }
+                const data = await res.json();
+                
+                document.getElementById('receita').textContent = 'R$ ' + (data.resumo?.receita || 0).toFixed(2);
+                document.getElementById('despesa').textContent = 'R$ ' + (data.resumo?.despesa || 0).toFixed(2);
+                document.getElementById('saldo').textContent = 'R$ ' + (data.resumo?.saldo || 0).toFixed(2);
+                
+                const lista = document.getElementById('lista');
+                if(data.lancamentos && data.lancamentos.length > 0) {
+                    lista.innerHTML = data.lancamentos.map(l => 
+                        `<li class="py-3 flex justify-between">
+                            <span>${l.desc}</span>
+                            <span class="${l.tipo === 'Receita' ? 'text-green-600' : 'text-red-600'} font-bold">R$ ${l.valor}</span>
+                        </li>`
+                    ).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+        loadData();
+    </script>
+</body>
+</html>

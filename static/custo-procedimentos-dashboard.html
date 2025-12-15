@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Procedimentos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4 sm:p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Módulo Custo por Prenhez</h1>
+        <nav class="mb-6 flex space-x-4">
+            <a href="custo-itens-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md hover:bg-indigo-50">Itens e Medicamentos</a>
+            <a href="custo-procedimentos-dashboard.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md">Procedimentos</a>
+            <a href="custo-prenhez-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md hover:bg-indigo-50">Cálculo Prenhez</a>
+            <a href="/" class="px-4 py-2 text-gray-600 flex items-center ml-auto"><i data-lucide="arrow-left" class="mr-2"></i> Voltar</a>
+        </nav>
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4">Novo Procedimento</h2>
+            <form id="procForm">
+                <div class="grid grid-cols-1 gap-4 mb-4">
+                    <div><label>Nome</label><input id="nome" class="w-full p-2 border rounded" required></div>
+                    <div><label>Tipo</label><select id="tipo" class="w-full p-2 border rounded"><option>Inseminação</option><option>Coleta</option></select></div>
+                    <div><label>Itens (Ctrl+Click)</label><select id="itens_ids" multiple class="w-full p-2 border rounded h-32"></select></div>
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded">Salvar</button>
+            </form>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <table class="w-full"><thead class="bg-gray-50"><tr><th class="p-2 text-left">Nome</th><th class="p-2 text-left">Custo Total</th></tr></thead><tbody id="lista"></tbody></table>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const API = '/api/custo_prenhez';
+        const token = localStorage.getItem('token');
+        async function load() {
+            // Itens para o select
+            const resItens = await fetch(API+'/custo_itens', {headers:{'Authorization':'Bearer '+token}});
+            const itens = await resItens.json();
+            document.getElementById('itens_ids').innerHTML = itens.map(i => `<option value="${i.id}">${i.nome} (R$ ${i.custo_da_dose.toFixed(2)})</option>`).join('');
+            
+            // Lista
+            const resProc = await fetch(API+'/procedimentos', {headers:{'Authorization':'Bearer '+token}});
+            const procs = await resProc.json();
+            document.getElementById('lista').innerHTML = procs.map(p => `<tr><td class="p-2">${p.nome}</td><td class="p-2">R$ ${p.custo_total.toFixed(2)}</td></tr>`).join('');
+        }
+        document.getElementById('procForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const selected = Array.from(document.getElementById('itens_ids').selectedOptions).map(o=>o.value);
+            const body = { nome: document.getElementById('nome').value, tipo: document.getElementById('tipo').value, itens_ids: selected };
+            await fetch(API+'/procedimentos', {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body:JSON.stringify(body)});
+            load(); e.target.reset();
+        });
+        load();
+    </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>IA Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-50">
+    <header class="bg-purple-600 text-white shadow p-4 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Inteligência Artificial</h1>
+            <a href="/" class="text-purple-100 hover:text-white flex items-center"><i data-lucide="arrow-left" class="mr-2"></i> Voltar</a>
+        </div>
+    </header>
+    <div class="container mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded shadow border-l-4 border-green-500">
+                <h3 class="text-gray-500">Taxa de Prenhez (IA)</h3>
+                <p class="text-3xl font-bold text-green-600" id="taxa">--%</p>
+            </div>
+            <div class="bg-white p-6 rounded shadow border-l-4 border-blue-500">
+                <h3 class="text-gray-500">Receita Prevista</h3>
+                <p class="text-3xl font-bold text-blue-600" id="receita">R$ --</p>
+            </div>
+        </div>
+        <div class="mt-8 bg-white p-6 rounded shadow">
+            <h3 class="font-bold mb-4">Alertas Inteligentes</h3>
+            <ul id="alertas" class="list-disc pl-5 text-gray-600"><li>Carregando...</li></ul>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const token = localStorage.getItem('token');
+        fetch('/api/ai/predictions', {headers:{'Authorization':'Bearer '+token}})
+        .then(r=>r.json())
+        .then(d => {
+            document.getElementById('taxa').innerText = d.taxa_prenhez + '%';
+            document.getElementById('receita').innerText = 'R$ ' + d.previsao_receita;
+            document.getElementById('alertas').innerHTML = d.alertas.map(a => `<li>${a}</li>`).join('');
+        });
+    </script>
+</body>
+</html>
