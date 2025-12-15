@@ -4,6 +4,7 @@ from datetime import datetime
 
 class Egua(Base):
     __tablename__ = 'eguas'
+    __table_args__ = {'extend_existing': True} # <--- A CORREÇÃO MÁGICA
     id = Column(Integer, primary_key=True)
     tenant_id = Column(String(50))
     nome = Column(String(100))
@@ -14,6 +15,7 @@ class Egua(Base):
 
 class Receptora(Base):
     __tablename__ = 'receptoras_new'
+    __table_args__ = {'extend_existing': True} # <--- A CORREÇÃO MÁGICA
     id = Column(Integer, primary_key=True)
     tenant_id = Column(String(50))
     nome = Column(String(100))
