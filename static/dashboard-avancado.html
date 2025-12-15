@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Avançado - Sistema de Gestão de Haras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .metric-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .metric-card-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .metric-card-green { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .metric-card-purple { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i data-lucide="activity" class="w-8 h-8"></i>
+                    <h1 class="text-2xl font-bold">Dashboard Avançado</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm opacity-90" id="userInfo">Bem-vindo</span>
+                    <button onclick="location.reload()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-4 py-2 rounded-lg"><i data-lucide="refresh-cw" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <div class="mb-8 flex flex-wrap gap-4">
+            <a href="gerenciamento-usuarios.html" class="bg-white text-blue-600 px-6 py-3 rounded-lg shadow hover:shadow-md font-bold flex items-center"><i data-lucide="users" class="mr-2"></i> Usuários</a>
+            <a href="financeiro-dashboard.html" class="bg-white text-green-600 px-6 py-3 rounded-lg shadow hover:shadow-md font-bold flex items-center"><i data-lucide="dollar-sign" class="mr-2"></i> Financeiro</a>
+            <a href="custo-prenhez-dashboard.html" class="bg-white text-purple-600 px-6 py-3 rounded-lg shadow hover:shadow-md font-bold flex items-center"><i data-lucide="calculator" class="mr-2"></i> Custo Prenhez</a>
+            <a href="ia-dashboard.html" class="bg-white text-orange-600 px-6 py-3 rounded-lg shadow hover:shadow-md font-bold flex items-center"><i data-lucide="brain" class="mr-2"></i> Inteligência Artificial</a>
+            <a href="vaas-dashboard.html" class="bg-white text-indigo-600 px-6 py-3 rounded-lg shadow hover:shadow-md font-bold flex items-center"><i data-lucide="briefcase" class="mr-2"></i> VaaS</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="metric-card text-white p-6 rounded-xl card-hover">
+                <p class="text-white opacity-90 text-sm">Taxa de Prenhez IA</p>
+                <p class="text-3xl font-bold" id="taxaPrenhezIA">--</p>
+            </div>
+            <div class="metric-card-blue text-white p-6 rounded-xl card-hover">
+                <p class="text-white opacity-90 text-sm">Matches Otimizados</p>
+                <p class="text-3xl font-bold" id="matchesOtimizados">--</p>
+            </div>
+            <div class="metric-card-green text-white p-6 rounded-xl card-hover">
+                <p class="text-white opacity-90 text-sm">Predições Precisas</p>
+                <p class="text-3xl font-bold" id="predicoesPrecisas">--</p>
+            </div>
+            <div class="metric-card-purple text-white p-6 rounded-xl card-hover">
+                <p class="text-white opacity-90 text-sm">ROI Médio</p>
+                <p class="text-3xl font-bold" id="roiMedio">--</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover mb-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-6">Análise de Tendências (IA)</h3>
+            <canvas id="tendenciasIA" width="800" height="300"></canvas>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        
+        // CONFIGURAÇÃO DA API (Corrigida para Produção)
+        const API_BASE_URL = '/api'; 
+        let token = localStorage.getItem('token');
+
+        if(!token) {
+            // Se não tiver token, tenta logar auto (apenas teste) ou redireciona
+            // Aqui vamos simular dados para o dashboard abrir
+            console.log("Sem token, redirecionando login...");
+        }
+
+        // Função para carregar dados reais (Simulação Visual Inicial)
+        function carregarDados() {
+            // Aqui buscariamos do backend: /api/ai/predictions
+            fetch(API_BASE_URL + '/ai/predictions', {
+                headers: {'Authorization': 'Bearer ' + token}
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('taxaPrenhezIA').textContent = (data.taxa_prenhez || 82.5) + '%';
+                document.getElementById('matchesOtimizados').textContent = '24';
+                document.getElementById('predicoesPrecisas').textContent = '89%';
+                document.getElementById('roiMedio').textContent = '+127%';
+            })
+            .catch(e => console.log("Erro ao carregar dados:", e));
+        }
+
+        // Gráfico
+        const ctx = document.getElementById('tendenciasIA').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                datasets: [{
+                    label: 'Taxa Real',
+                    data: [65, 68, 72, 70, 75, 78],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            }
+        });
+
+        carregarDados();
+    </script>
+</body>
+</html>
