@@ -7,24 +7,19 @@ from sqlalchemy import text
 
 # Rotas
 from routes.receptoras import receptoras_bp
-from routes.financeiro import financeiro_bp
 from routes.custo_prenhez import custo_bp
-from routes.biotech import biotech_bp
-from routes.embryo import embryo_bp
-from routes.general import general_bp
+from routes.integracao import integracao_bp # NOVO
 
 from models.database import db_session, init_db, engine, Base
 from models.user import Usuario
 
+# Importar modelos para garantir criação das tabelas
 import models.receptora
-import models.financeiro
 import models.custo_prenhez
-import models.biotech
-import models.embryo
+import models.extras
 import models.properties
 
 def create_app():
-    # Define a pasta static
     app = Flask(__name__, static_folder='static', static_url_path='')
     
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key')
@@ -32,13 +27,12 @@ def create_app():
     CORS(app)
     JWTManager(app)
 
-    # Registro das Rotas
+    # --- REGISTRO DAS ROTAS ---
     app.register_blueprint(receptoras_bp, url_prefix='/api/receptoras')
-    app.register_blueprint(financeiro_bp, url_prefix='/api/financeiro')
     app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
-    app.register_blueprint(biotech_bp, url_prefix='/api/biotech')
-    app.register_blueprint(embryo_bp, url_prefix='/api/embrioes')
-    app.register_blueprint(general_bp, url_prefix='/api/geral')
+    
+    # Rota mestre que cuida de Users, Financeiro e IA
+    app.register_blueprint(integracao_bp, url_prefix='/api')
     
     @app.teardown_appcontext
     def shutdown(e=None): db_session.remove()
@@ -52,47 +46,27 @@ def create_app():
             return jsonify({"token":t, "user":{"nome":u.nome, "role":u.role}}), 200
         return jsonify({"msg":"Erro de credenciais"}), 401
 
-    @app.route('/api/criar-admin', methods=['GET'])
-    def setup():
-        try:
-            Base.metadata.create_all(bind=engine)
-            if not db_session.query(Usuario).filter_by(email="admin@haras.com").first():
-                db_session.add(Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao"))
-                db_session.commit()
-            return jsonify({"msg":"Banco Atualizado"}), 200
-        except Exception as e: return jsonify({"error": str(e)}), 500
-
     @app.route('/api/resetar-banco-completo', methods=['GET'])
     def reset_db():
         try:
             with engine.connect() as conn:
-                conn.execute(text("DROP TABLE IF EXISTS itens_procedimento CASCADE"))
-                conn.execute(text("DROP TABLE IF EXISTS itens_custo CASCADE"))
-                conn.execute(text("DROP TABLE IF EXISTS procedimentos CASCADE"))
-                conn.execute(text("DROP TABLE IF EXISTS calculos_prenhez CASCADE"))
-                conn.execute(text("DROP TABLE IF EXISTS procedimento_itens CASCADE"))
-                conn.execute(text("DROP TABLE IF EXISTS calculo_procedimentos CASCADE"))
+                # Limpeza forçada
+                conn.execute(text("DROP SCHEMA public CASCADE; CREATE SCHEMA public;"))
                 conn.commit()
-            Base.metadata.drop_all(bind=engine)
+
             Base.metadata.create_all(bind=engine)
+            
             admin = Usuario(nome="Admin", email="admin@haras.com", password_hash=generate_password_hash("admin123"), role="proprietario", tenant_id="padrao")
             db_session.add(admin)
             db_session.commit()
             return jsonify({"message": "BANCO RESETADO COM SUCESSO."}), 200
         except Exception as e: return jsonify({"error": str(e)}), 500
 
-    # Rota Principal Alterada
     @app.route('/')
-    def index():
-        # Forçando o arquivo NOVO
-        return app.send_static_file('dashboard-avancado.html')
+    def index(): return app.send_static_file('dashboard-avancado.html')
 
     @app.route('/<path:path>')
-    def static_files(path):
-        return app.send_static_file(path)
-    
-    @app.route('/health')
-    def health(): return jsonify({'status': 'online'})
+    def static_files(path): return app.send_static_file(path)
     
     return app
 
