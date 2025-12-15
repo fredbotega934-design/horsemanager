@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Receptoras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Central de Receptoras</h1>
+            <a href="/" class="text-blue-600 flex items-center"><i data-lucide="arrow-left" class="mr-2"></i> Voltar</a>
+        </div>
+        <div class="bg-white p-6 rounded shadow mb-6">
+            <h2 class="font-bold mb-4">Nova Receptora</h2>
+            <form id="formRec" class="flex gap-4">
+                <input id="nome" placeholder="Nome/Número" class="border p-2 rounded w-full" required>
+                <input id="lote" placeholder="Lote" class="border p-2 rounded w-1/4">
+                <select id="status" class="border p-2 rounded">
+                    <option>Disponível</option><option>Em Preparo</option><option>Prenha</option>
+                </select>
+                <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded">Salvar</button>
+            </form>
+        </div>
+        <div class="bg-white rounded shadow overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50"><tr><th class="p-4">Nome</th><th class="p-4">Lote</th><th class="p-4">Status</th></tr></thead>
+                <tbody id="listaRec"></tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        const API = '/api/animais/receptoras';
+        const token = localStorage.getItem('token');
+        async function load() {
+            const res = await fetch(API, {headers:{'Authorization':'Bearer '+token}});
+            const data = await res.json();
+            document.getElementById('listaRec').innerHTML = data.map(r => `
+                <tr class="border-t hover:bg-gray-50"><td class="p-4 font-bold">${r.nome}</td><td class="p-4">${r.lote}</td><td class="p-4"><span class="px-2 py-1 rounded text-sm ${r.status==='Disponível'?'bg-green-100 text-green-800':'bg-yellow-100 text-yellow-800'}">${r.status}</span></td></tr>
+            `).join('');
+        }
+        document.getElementById('formRec').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetch(API, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body: JSON.stringify({nome: document.getElementById('nome').value, lote: document.getElementById('lote').value, status: document.getElementById('status').value})});
+            e.target.reset(); load();
+        });
+        load();
+    </script>
+</body>
+</html>
