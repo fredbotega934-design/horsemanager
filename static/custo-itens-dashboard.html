@@ -19,16 +19,16 @@
             <h2 class="text-xl font-semibold mb-4">Cadastrar Item</h2>
             <form id="itemForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div><label>Nome</label><input id="nome" class="w-full p-2 border rounded" required></div>
-                <div><label>Categoria</label><select id="categoria" class="w-full p-2 border rounded"><option>Hormônio</option><option>Material</option></select></div>
-                <div><label>Valor Total (R$)</label><input type="number" id="valor_total" class="w-full p-2 border rounded" required></div>
-                <div><label>Qtd Total</label><input type="number" id="quantidade_total" class="w-full p-2 border rounded" required></div>
-                <div><label>Unidade</label><select id="unidade_medida" class="w-full p-2 border rounded"><option>ml</option><option>un</option></select></div>
-                <div><label>Dose Usada</label><input type="number" id="dose_usada" class="w-full p-2 border rounded" required></div>
-                <div class="md:col-span-3 text-right"><button type="submit" class="bg-green-600 text-white px-6 py-2 rounded">Salvar</button></div>
+                <div><label>Categoria</label><select id="categoria" class="w-full p-2 border rounded"><option>Hormônio</option><option>Material</option><option>Serviço</option></select></div>
+                <div><label>Valor Total (R$)</label><input type="number" step="0.01" id="valor_total" class="w-full p-2 border rounded" required></div>
+                <div><label>Qtd Total</label><input type="number" step="0.01" id="quantidade_total" class="w-full p-2 border rounded" required></div>
+                <div><label>Unidade</label><select id="unidade_medida" class="w-full p-2 border rounded"><option>ml</option><option>un</option><option>frasco</option></select></div>
+                <div><label>Dose Usada</label><input type="number" step="0.001" id="dose_usada" class="w-full p-2 border rounded" required></div>
+                <div class="md:col-span-3 text-right"><button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Salvar Item</button></div>
             </form>
         </div>
         <div class="bg-white p-6 rounded-xl shadow-lg">
-            <table class="w-full"><thead class="bg-gray-50"><tr><th class="text-left p-2">Nome</th><th class="text-left p-2">Custo Dose</th></tr></thead><tbody id="lista"></tbody></table>
+            <table class="w-full"><thead class="bg-gray-50"><tr><th class="text-left p-2">Nome</th><th class="text-left p-2">Dose Usada</th><th class="text-left p-2">Custo Dose</th></tr></thead><tbody id="lista"></tbody></table>
         </div>
     </div>
     <script>
@@ -36,9 +36,16 @@
         const API = '/api/custo_prenhez/custo_itens';
         const token = localStorage.getItem('token');
         async function load() {
-            const res = await fetch(API, {headers:{'Authorization':'Bearer '+token}});
-            const data = await res.json();
-            document.getElementById('lista').innerHTML = data.map(i => `<tr><td class="p-2">${i.nome}</td><td class="p-2">R$ ${i.custo_da_dose.toFixed(2)}</td></tr>`).join('');
+            try {
+                const res = await fetch(API, {headers:{'Authorization':'Bearer '+token}});
+                const data = await res.json();
+                document.getElementById('lista').innerHTML = data.map(i => `
+                    <tr class="border-t">
+                        <td class="p-2">${i.nome}</td>
+                        <td class="p-2">${i.dose_usada} ${i.unidade_medida}</td>
+                        <td class="p-2 font-bold text-green-600">R$ ${i.custo_da_dose.toFixed(2)}</td>
+                    </tr>`).join('');
+            } catch(e) { console.error(e); }
         }
         document.getElementById('itemForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -50,8 +57,9 @@
                 unidade_medida: document.getElementById('unidade_medida').value,
                 dose_usada: document.getElementById('dose_usada').value
             };
-            await fetch(API, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body:JSON.stringify(body)});
-            load(); e.target.reset();
+            const res = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body:JSON.stringify(body)});
+            if(res.ok) { alert("Salvo!"); e.target.reset(); load(); }
+            else { alert("Erro ao salvar."); }
         });
         load();
     </script>
