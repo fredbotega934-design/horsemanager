@@ -1,5 +1,5 @@
 import os
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,11 +10,12 @@ from routes.custo_prenhez import custo_bp
 from routes.integracao import integracao_bp
 from routes.animals import animals_bp
 
-from models.database import db_session, init_db, engine, Base
+from models.database import db_session, engine, Base
 from models.user import Usuario
+# Importacao dos Modelos
 import models.custo_prenhez
 import models.extras
-import models.animals
+import models.animals 
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
@@ -23,7 +24,6 @@ def create_app():
     CORS(app)
     JWTManager(app)
 
-    # Registro
     app.register_blueprint(custo_bp, url_prefix='/api/custo_prenhez')
     app.register_blueprint(integracao_bp, url_prefix='/api')
     app.register_blueprint(animals_bp, url_prefix='/api/animais')
