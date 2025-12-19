@@ -8,58 +8,89 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto p-4 sm:p-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Módulo Custo por Prenhez</h1>
-        <nav class="mb-6 flex space-x-4">
-            <a href="custo-itens-dashboard.html" class="px-4 py-2 bg-indigo-600 text-white rounded-lg shadow-md">Itens e Medicamentos</a>
-            <a href="custo-procedimentos-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md">Procedimentos</a>
-            <a href="custo-prenhez-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded-lg shadow-md">Cálculo Prenhez</a>
-            <a href="/" class="px-4 py-2 text-gray-600 flex items-center ml-auto"><i data-lucide="arrow-left" class="mr-2"></i> Voltar</a>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Itens e Medicamentos</h1>
+            <a href="/" class="text-blue-600 flex items-center"><i data-lucide="arrow-left" class="mr-2"></i> Voltar</a>
+        </div>
+        
+        <nav class="mb-6 flex gap-4">
+            <a href="custo-itens-dashboard.html" class="px-4 py-2 bg-indigo-600 text-white rounded shadow">Itens</a>
+            <a href="custo-procedimentos-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded shadow">Procedimentos</a>
+            <a href="custo-prenhez-dashboard.html" class="px-4 py-2 bg-white text-indigo-600 border border-indigo-600 rounded shadow">Cálculo Prenhez</a>
         </nav>
-        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
-            <h2 class="text-xl font-semibold mb-4">Cadastrar Item</h2>
+
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8 border-t-4 border-indigo-600">
+            <h2 class="text-lg font-bold mb-4">Novo Item</h2>
             <form id="itemForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label>Nome</label><input id="nome" class="w-full p-2 border rounded" required></div>
-                <div><label>Categoria</label><select id="categoria" class="w-full p-2 border rounded"><option>Hormônio</option><option>Material</option><option>Serviço</option></select></div>
-                <div><label>Valor Total (R$)</label><input type="number" step="0.01" id="valor_total" class="w-full p-2 border rounded" required></div>
-                <div><label>Qtd Total</label><input type="number" step="0.01" id="quantidade_total" class="w-full p-2 border rounded" required></div>
-                <div><label>Unidade</label><select id="unidade_medida" class="w-full p-2 border rounded"><option>ml</option><option>un</option><option>frasco</option></select></div>
-                <div><label>Dose Usada</label><input type="number" step="0.001" id="dose_usada" class="w-full p-2 border rounded" required></div>
-                <div class="md:col-span-3 text-right"><button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">Salvar Item</button></div>
+                <div><label class="block text-sm font-bold">Nome</label><input id="nome" class="w-full p-2 border rounded" required></div>
+                <div><label class="block text-sm font-bold">Categoria</label><select id="categoria" class="w-full p-2 border rounded"><option>Hormônio</option><option>Material</option><option>Serviço</option></select></div>
+                
+                <div><label class="block text-sm font-bold">Valor Total (R$)</label><input type="number" step="0.01" id="valor_total" class="w-full p-2 border rounded" placeholder="Ex: 12.50" required></div>
+                <div><label class="block text-sm font-bold">Qtd Total (Frasco/Caixa)</label><input type="number" step="0.01" id="quantidade_total" class="w-full p-2 border rounded" placeholder="Ex: 1" required></div>
+                <div><label class="block text-sm font-bold">Unidade Medida</label><select id="unidade_medida" class="w-full p-2 border rounded"><option>ml</option><option>un</option><option>frasco</option><option>mg</option></select></div>
+                <div><label class="block text-sm font-bold">Dose Usada (Por animal)</label><input type="number" step="0.001" id="dose_usada" class="w-full p-2 border rounded" placeholder="Ex: 2.5" required></div>
+                
+                <div class="md:col-span-3 text-right">
+                    <button type="submit" class="bg-green-600 text-white px-8 py-2 rounded font-bold hover:bg-green-700">Salvar Item</button>
+                </div>
             </form>
         </div>
-        <div class="bg-white p-6 rounded-xl shadow-lg">
-            <table class="w-full"><thead class="bg-gray-50"><tr><th class="text-left p-2">Nome</th><th class="text-left p-2">Dose Usada</th><th class="text-left p-2">Custo Dose</th></tr></thead><tbody id="lista"></tbody></table>
+
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50"><tr><th class="p-3">Nome</th><th class="p-3">Dose</th><th class="p-3">Custo Dose</th></tr></thead>
+                <tbody id="lista" class="divide-y"></tbody>
+            </table>
         </div>
     </div>
     <script>
         lucide.createIcons();
         const API = '/api/custo_prenhez/custo_itens';
         const token = localStorage.getItem('token');
+
         async function load() {
             try {
                 const res = await fetch(API, {headers:{'Authorization':'Bearer '+token}});
                 const data = await res.json();
                 document.getElementById('lista').innerHTML = data.map(i => `
-                    <tr class="border-t">
-                        <td class="p-2">${i.nome}</td>
-                        <td class="p-2">${i.dose_usada} ${i.unidade_medida}</td>
-                        <td class="p-2 font-bold text-green-600">R$ ${i.custo_da_dose.toFixed(2)}</td>
-                    </tr>`).join('');
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 font-medium">${i.nome}</td>
+                        <td class="p-3">${i.dose_usada} ${i.unidade_medida}</td>
+                        <td class="p-3 font-bold text-green-600">R$ ${i.custo_da_dose.toFixed(2)}</td>
+                    </tr>
+                `).join('');
             } catch(e) { console.error(e); }
         }
+
         document.getElementById('itemForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const body = {
-                nome: document.getElementById('nome').value,
-                categoria: document.getElementById('categoria').value,
-                valor_total: document.getElementById('valor_total').value,
-                quantidade_total: document.getElementById('quantidade_total').value,
-                unidade_medida: document.getElementById('unidade_medida').value,
-                dose_usada: document.getElementById('dose_usada').value
-            };
-            const res = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token}, body:JSON.stringify(body)});
-            if(res.ok) { alert("Salvo!"); e.target.reset(); load(); }
-            else { alert("Erro ao salvar."); }
+            const btn = e.target.querySelector('button');
+            const original = btn.innerText;
+            btn.innerText = "Salvando..."; btn.disabled = true;
+
+            try {
+                const res = await fetch(API, {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+token},
+                    body: JSON.stringify({
+                        nome: document.getElementById('nome').value,
+                        categoria: document.getElementById('categoria').value,
+                        valor_total: document.getElementById('valor_total').value,
+                        quantidade_total: document.getElementById('quantidade_total').value,
+                        unidade_medida: document.getElementById('unidade_medida').value,
+                        dose_usada: document.getElementById('dose_usada').value
+                    })
+                });
+                
+                if(res.ok) {
+                    alert("✅ Item Salvo com Sucesso!");
+                    e.target.reset(); load();
+                } else {
+                    const err = await res.json();
+                    alert("❌ Erro: " + (err.error || "Desconhecido"));
+                }
+            } catch(e) { alert("Erro de conexão"); }
+            finally { btn.innerText = original; btn.disabled = false; }
         });
         load();
     </script>

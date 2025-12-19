@@ -6,6 +6,7 @@ from datetime import datetime
 
 custo_bp = Blueprint("custo_prenhez", __name__)
 
+# --- ITENS ---
 @custo_bp.route("/custo_itens", methods=["GET"])
 @token_required
 def get_itens(current_user):
@@ -23,7 +24,7 @@ def get_itens(current_user):
 def add_item(current_user):
     data = request.get_json()
     try:
-        # Conversão FORÇADA para Float (aceita 0.5, 1.5, etc)
+        # CONVERSÃO PARA FLOAT (Permite centavos)
         val_total = float(data.get('valor_total', 0))
         qtd_total = float(data.get('quantidade_total', 1))
         dose_usada = float(data.get('dose_usada', 0))
@@ -44,29 +45,71 @@ def add_item(current_user):
         )
         db_session.add(novo)
         db_session.commit()
-        return jsonify({"message": "Item salvo"}), 201
+        return jsonify({"message": "Item salvo com sucesso!"}), 201
     except Exception as e:
         db_session.rollback()
-        return jsonify({"message": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
-# (Mantendo as outras rotas simplificadas para economizar espaço, mas funcionais)
-@custo_bp.route("/custo_itens/<int:id>", methods=["DELETE"])
-@token_required
-def delete_item(current_user, id):
-    i = db_session.query(ItemCusto).get(id)
-    if i: 
-        db_session.delete(i)
-        db_session.commit()
-    return jsonify({"msg":"OK"}), 200
-
+# --- PROCEDIMENTOS ---
 @custo_bp.route("/procedimentos", methods=["GET"])
 @token_required
 def get_procs(current_user):
     l = db_session.query(Procedimento).filter_by(tenant_id=current_user.tenant_id).all()
     return jsonify([{"id":p.id,"nome":p.nome,"custo_total":p.custo_total} for p in l]), 200
 
+@custo_bp.route("/procedimentos", methods=["POST"])
+@token_required
+def add_proc(current_user):
+    data = request.get_json()
+    try:
+        ids = [int(x) for x in data.get('itens_ids', [])]
+        itens = db_session.query(ItemCusto).filter(ItemCusto.id.in_(ids)).all()
+        custo_total = sum(i.custo_da_dose for i in itens)
+        
+        novo = Procedimento(
+            tenant_id=current_user.tenant_id,
+            nome=data.get('nome'), 
+            tipo=data.get('tipo'), 
+            custo_total=custo_total
+        )
+        for i in itens: novo.itens_usados.append(i)
+        
+        db_session.add(novo)
+        db_session.commit()
+        return jsonify({"msg": "Procedimento salvo!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- PRENHEZ ---
 @custo_bp.route("/prenhez", methods=["GET"])
 @token_required
 def get_calcs(current_user):
     l = db_session.query(CalculoPrenhez).filter_by(tenant_id=current_user.tenant_id).all()
-    return jsonify([{"id":c.id,"nome":c.nome,"total":c.custo_total_prenhez} for c in l]), 200
+    return jsonify([{"id":c.id,"nome":c.nome,"total":c.custo_total_prenhez, "data":c.data_criacao} for c in l]), 200
+
+@custo_bp.route("/prenhez", methods=["POST"])
+@token_required
+def add_calc(current_user):
+    data = request.get_json()
+    try:
+        p_ids = [int(x) for x in data.get('procedimentos_ids', [])]
+        procs = db_session.query(Procedimento).filter(Procedimento.id.in_(p_ids)).all()
+        custo_ciclo = sum(p.custo_total for p in procs)
+        
+        ciclos = int(data.get('num_ciclos', 1))
+        tentativas = int(data.get('num_tentativas', 1))
+        
+        novo = CalculoPrenhez(
+            tenant_id=current_user.tenant_id,
+            nome=data.get('nome'),
+            num_ciclos=ciclos, num_tentativas=tentativas,
+            custo_medio_ciclo=custo_ciclo,
+            custo_total_prenhez=custo_ciclo * ciclos * tentativas,
+            data_criacao=datetime.now().strftime("%d/%m/%Y")
+        )
+        for p in procs: novo.procedimentos_usados.append(p)
+        db_session.add(novo)
+        db_session.commit()
+        return jsonify({"msg": "Cálculo salvo!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
